@@ -8,7 +8,7 @@ n = size(D,1);
 C = zeros(n);
 
 % sort distance matrix by row
-
+D = sort(D);
 
 ux = find(dx <= beta*D(x,y));  
 uy = find(dy <= beta*D(x,y));
