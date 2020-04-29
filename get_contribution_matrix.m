@@ -8,6 +8,11 @@ end
 n = size(D,1);
 C = zeros(n);
 
+for i = 1:n
+    D(i,:) = sort(D(i,:),'descend');
+end
+
+
 for x = 1:(n-1)
     for y = (x+1):n
         dx = D(x,:);
