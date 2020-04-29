@@ -1,3 +1,6 @@
-function D = get_distance_matrix(x)
+function D = get_distance_matrix(X)
+
+
+
 
 end
