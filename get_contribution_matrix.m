@@ -9,7 +9,6 @@ n = size(D,1);
 C = zeros(n);
 
 
-
 for x = 1:(n-1)
     for y = (x+1):n
         dx = D(x,:);
