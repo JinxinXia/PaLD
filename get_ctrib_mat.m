@@ -9,19 +9,26 @@ C = zeros(n);
 
 % sort distance matrix by row
 
+for i = 1:n
+    D(i,:) = sort(D(i,:),'descend');
+end
 
-ux = find(dx <= beta*D(x,y));  
-uy = find(dy <= beta*D(x,y));
 
 % use sparse accumulator to get union of ux and uy
-b = zeros(1,n);
-b(1,ux) = 1;
-b(1,uy) = 1;
 
-uxy = find(b ~= 0);
 
 for x = 1:(n-1)
     for y = (x+1):n
+        ux = find(dx <= beta*D(x,y));  
+        uy = find(dy <= beta*D(x,y));
+        b = zeros(1,n);
+        b(1,ux) = 1;
+        b(1,uy) = 1;
+
+        uxy = find(b ~= 0);
+        
+        
+        
         dx = D(x,:);
         dy = D(y,:);
         wx = sum(dx(uxy) < dy(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
