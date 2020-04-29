@@ -18,9 +18,9 @@ clear;
 clear;
 rng(12);
 d = rand(1,500,500);
-a = find(d == 0);
+
 C = get_ctrib_mat(d,1);
-a
+
 
 
 
