@@ -17,6 +17,9 @@ for x = 1:(n-1)
         wy = sum(dy(uxy) < dx(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
         C(x,uxy) = C(x,uxy) + wx/(size(uxy,1)); % fix this by only adding to uxy
         C(y,uxy) = C(y,uxy) + wy/(size(uxy,1));
+        
+        
+        
     end
 end
 % diag(C) = diag(C)
