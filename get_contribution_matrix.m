@@ -18,8 +18,6 @@ for x = 1:(n-1)
         C(x,uxy) = C(x,uxy) + wx/(size(uxy,1)); % fix this by only adding to uxy
         C(y,uxy) = C(y,uxy) + wy/(size(uxy,1));
         
-        
-        
     end
 end
 % diag(C) = diag(C)
