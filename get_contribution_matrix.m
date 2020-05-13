@@ -22,6 +22,9 @@ for x = 1:(n-1)
 end
 % diag(C) = diag(C)
 
+
+
+
 C = C/(n-1);
 end
         
