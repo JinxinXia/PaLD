@@ -37,6 +37,9 @@ end
 % diag(C) = diag(C)
 
 C = C/(n-1);
+
+
+
 end
 
 
