@@ -5,7 +5,7 @@ if beta < 0
 end
 
 n = size(D,1);
-disp(n)
+print(n)
 C = zeros(n);
 
 for x = 1:(n-1)
