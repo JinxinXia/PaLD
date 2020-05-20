@@ -5,6 +5,7 @@ if beta < 0
 end
 
 n = size(D,1);
+n
 C = zeros(n);
 
 for x = 1:(n-1)
@@ -13,9 +14,10 @@ for x = 1:(n-1)
         dy = D(y,:);
         uxy = [find(dx <= beta*D(x,y))  find(dy <= beta*D(x,y))];
         uxy = unique(uxy);
+        uxy
         wx = sum(dx(uxy) < dy(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
         wy = sum(dy(uxy) < dx(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
-        u_size = size(uxy,1);
+        u_size = size(uxy,1)
         if u_size ~= 0
             C(x,uxy) = C(x,uxy) + wx/(u_size); % fix this by only adding to uxy
             C(y,uxy) = C(y,uxy) + wy/(u_size);
