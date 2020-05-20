@@ -18,8 +18,13 @@ clear;
 clear;
 rng(12);
 d = rand(5,5);
-C = get_ctrib_mat(d,1)
+tic
+C1 = get_ctrib_mat(d,1)
+toc
 
+tic
+C = get_contribution_matrix(d,1)
+toc
 
 
 

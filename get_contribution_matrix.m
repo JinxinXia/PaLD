@@ -1,4 +1,4 @@
-function C = get_contribution_matrix(D,beta)
+function [C,n] = get_contribution_matrix(D,beta)
 % D is the distance matrix
 
 if beta < 0
