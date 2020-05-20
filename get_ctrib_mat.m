@@ -9,7 +9,7 @@ C = zeros(n);
 
 
 % use sparse accumulator to get union of ux and uy
-
+% need to sort each row of the distance matrix
 
 for x = 1:(n-1)
     for y = (x+1):n
