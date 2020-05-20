@@ -1,12 +1,13 @@
-function C = get_contribution_matrix(D,beta)
+function n = get_contribution_matrix(D,beta)
 % D is the distance matrix
+
 if beta < 0
     error('beta must be positive');
 end
 
 n = size(D,1);
 disp(n)
-C = zeros(n);
+%C = zeros(n);
 
 for x = 1:(n-1)
     for y = (x+1):n
@@ -24,6 +25,7 @@ for x = 1:(n-1)
         end
     end
 end
+
 % diag(C) = diag(C)
 
 
