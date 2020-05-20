@@ -17,9 +17,10 @@ clear;
 
 clear;
 rng(12);
-d = rand(1,500,500);
-
+d = rand(1,5,5);
+d
 C = get_ctrib_mat(d,1);
+C
 
 
 
