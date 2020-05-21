@@ -17,21 +17,12 @@ clear;
 
 clear;
 rng(12);
-d = rand(5,5);
+d = rand(5000,5000);
 D = (d+d')/2;
 tic
-C1 = get_ctrib_mat(d,1)
+C1 = get_ctrib_mat(d,1);
 toc
 
 tic
-C = get_contribution_matrix(d,1)
+C = get_contribution_matrix(d,1);
 toc
-
-
-
-
-
-
-
-
-
