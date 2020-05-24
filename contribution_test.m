@@ -17,8 +17,12 @@ clear;
 
 clear;
 rng(12);
-d = rand(500,500);
+d = rand(5,5);
 D = (d+d')/2;
+D
+
+
+
 tic
 C1 = get_ctrib_mat(d,1);
 toc
