@@ -1,9 +1,14 @@
 function [C,n] = get_contribution_matrix(D,beta)
-% D is the distance matrix
+% D is the distance matrix, it is also symmetric
 
-if beta < 0
+if beta < 0 
     error('beta must be positive');
 end
+
+if D' ~= D 
+    error('distance matrix must be symmetric');
+end
+
 
 n = size(D,1);
 C = zeros(n);
