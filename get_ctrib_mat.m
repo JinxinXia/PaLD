@@ -20,6 +20,9 @@ for x = 1:(n-1)
         b = zeros(1,n);
         b(1,ux) = 1;
         b(1,uy) = 1;
+        
+        
+        
 
         uxy = find(b ~= 0);
         
