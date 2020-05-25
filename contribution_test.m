@@ -17,7 +17,7 @@ clear;
 
 clear;
 rng(12);
-d = rand(5,5);
+d = rand(50,50);
 D = (d+d')/2;
 D = D - diag(diag(D));
 

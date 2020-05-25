@@ -33,8 +33,8 @@ for x = 1:(n-1)
         u_size = size(uxy,2);
         if u_size ~= 0
             % check for zeros
-            C(x,uxy) = C(x,uxy) + wx/(size(uxy,1)); % fix this by only adding to uxy
-            C(y,uxy) = C(y,uxy) + wy/(size(uxy,1));
+            C(x,uxy) = C(x,uxy) + wx/u_size; % fix this by only adding to uxy
+            C(y,uxy) = C(y,uxy) + wy/u_size;
         end
       
     end
