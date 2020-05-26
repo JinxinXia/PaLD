@@ -17,16 +17,18 @@ clear;
 
 clear;
 rng(12);
-d = rand(50,50);
+d = rand(500,500);
 D = (d+d')/2;
 D = D - diag(diag(D));
 
-
-
-tic
-C1 = get_ctrib_mat(d,1);
-toc
+disp('our method')
 
 tic
-C = get_contribution_matrix(d,1);
+C1 = get_ctrib_mat(D,1);
 toc
+
+disp('their method')
+tic
+C = get_contribution_matrix(D,1);
+toc
+fprintf('norm(C1-C): %f \n',norm(C-C1))

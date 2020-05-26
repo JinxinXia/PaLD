@@ -34,15 +34,13 @@ for x = 1:(n-1)
         b(1,ux) = 1;
         b(1,uy) = 1;
 
-        % get all the unique indices(or points) to form conflict focus
+        % get all 
         uxy = find(b ~= 0);
         
-        % calculate local depth
         wx = sum(dx(uxy) < dy(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
         wy = sum(dy(uxy) < dx(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
         u_size = size(uxy,2);
         
-        % assign local depth value to the corresponding position in C
         if u_size ~= 0
             C(x,uxy) = C(x,uxy) + wx/u_size; 
             C(y,uxy) = C(y,uxy) + wy/u_size;
