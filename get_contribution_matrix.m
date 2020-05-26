@@ -1,6 +1,8 @@
 function [C,n] = get_contribution_matrix(D,beta)
-% D is the distance matrix, it is also symmetric
-% this function is based on the existing PaLD algorithm R code
+% D is the distance matrix, the value of D(x,y) is the distance between x 
+% and y (d(x,y)).
+% beta is the parameter to control the radius of conflict focus, the output
+% matrix C is the cohension matrix.
 
 if beta < 0 
     error('beta must be positive');
