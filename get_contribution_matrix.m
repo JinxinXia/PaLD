@@ -18,13 +18,21 @@ C = zeros(n);
 
 for x = 1:(n-1)
     for y = (x+1):n
-        dx = D(x,:);
-        dy = D(y,:);
+        
+        dx = D(x,:);% get the row of distance between x and all other points
+        dy = D(y,:);% get the row of distance between y and all other points
+        
+        % find all the points that has a smaller distance from that point 
+        % to either x or y than d(x,y) 
         uxy = [find(dx <= beta*D(x,y))  find(dy <= beta*D(x,y))];
         uxy = unique(uxy);
+        
+        % calculate the local depth
         wx = sum(dx(uxy) < dy(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
         wy = sum(dy(uxy) < dx(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
         u_size = size(uxy,2);
+        
+        % assign local depth value to the corresponding position in C
         if u_size ~= 0
             C(x,uxy) = C(x,uxy) + wx/(u_size); 
             C(y,uxy) = C(y,uxy) + wy/(u_size);
@@ -32,6 +40,7 @@ for x = 1:(n-1)
     end
 end
 
+% convert summed local depth to cohesion matrix
 C = C/(n-1);
 
 end
