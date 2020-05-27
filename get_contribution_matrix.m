@@ -26,6 +26,8 @@ for x = 1:(n-1)
         % to either x or y than d(x,y) 
         uxy = [find(dx <= beta*D(x,y))  find(dy <= beta*D(x,y))];
         uxy = unique(uxy);
+       
+        
         
         % calculate the local depth
         wx = sum(dx(uxy) < dy(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
