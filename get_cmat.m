@@ -18,14 +18,13 @@ C = zeros(n);
 sort_D_indices = get_sorted_indices(D);
 
 
-
-
-
 % use sparse accumulator to get union of ux and uy
 % need to sort each row of the distance matrix
 
-for x = 1:(n-1)
-    for y = (x+1):n
+for i = 1:(n-1)
+    for j = (x+1):n
+        x = i;
+        y = sort_D_indices(i,j);
         
         
         b(1,ux) = 1;
