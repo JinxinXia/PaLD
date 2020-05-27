@@ -1,6 +1,6 @@
 
 clear;
-rng(12);
+rng(122);
 
 % create a random distance matrix that is symmetric with diagonal elements
 % equal to zeros
