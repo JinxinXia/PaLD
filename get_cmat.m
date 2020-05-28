@@ -27,6 +27,8 @@ for i = 1:(n-1)
         y = sort_D_indices(i,j);
         
         
+        
+        
         b(1,ux) = 1;
         b(1,uy) = 1;
 
