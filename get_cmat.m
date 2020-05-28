@@ -22,7 +22,7 @@ sort_D_indices = get_sorted_indices(D);
 % need to sort each row of the distance matrix
 
 for i = 1:(n-1)
-    for j = (x+1):n
+    for j = (i+1):n
         
         % x and y are two points that we selected
         x = i;
@@ -46,8 +46,11 @@ for i = 1:(n-1)
 
         uxy = find(b ~= 0);
         
+        
+        
         wx = sum(dx(uxy) < dy(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
         wy = sum(dy(uxy) < dx(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
+        
         u_size = size(uxy,2);
         if u_size ~= 0
             % check for zeros
