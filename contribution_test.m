@@ -25,4 +25,5 @@ tic
 C2 = get_cmat(D,1);
 toc
 % check distance between the output of two methods
+fprintf('norm(C-C1): %f \n',norm(C-C1))
 fprintf('norm(C1-C2): %f \n',norm(C1-C2))
