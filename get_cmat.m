@@ -46,7 +46,8 @@ for i = 1:(n-1)
 
         uxy = find(b ~= 0);
         
-        
+        dx = D(x,:); % get the row of distance between x and all other points 
+        dy = D(y,:); % get the row of distance between y and all other points
         
         wx = sum(dx(uxy) < dy(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
         wy = sum(dy(uxy) < dx(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
