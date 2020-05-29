@@ -51,6 +51,7 @@ for i = 1:(n-1)
         wx = sum(dx(uxy) < dy(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
         wy = sum(dy(uxy) < dx(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
         
+        
         u_size = size(uxy,2);
         if u_size ~= 0
             % check for zeros
