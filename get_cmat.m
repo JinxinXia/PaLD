@@ -30,27 +30,23 @@ for i = 1:(n-1)
         
         % ux contains the points that have a smaller distance with x
         % comparing with d(x,y)
-        ux = sort_D_indices(i,1:j);
+        ux = sort_D_indices(i,1:j+1);
         
         % uy contains the points that have a smaller distance with y
         % comparing with d(x,y), to get uy we need find d(x,y) in the yth
         % row, uy_bound give the index where d(x,y) lives in the sorted
         % distance indices matrix
         uy_bound = find(sort_D_indices(y,:) == x);
-        uy = sort_D_indices(y,1:uy_bound);
+        uy = sort_D_indices(y,1:uy_bound+1);
         
         % get the unique points in ux and uy
         b = zeros(1,n);
         b(1,ux) = 1;
         b(1,uy) = 1;
-
         uxy = find(b ~= 0);
         
-        
-        
-        dx = D(x,:); % get the row of distance between x and all other points 
-        dy = D(y,:); % get the row of distance between y and all other points
-        
+        dx = D(x,:);% get the row of distance between x and all other points
+        dy = D(y,:);% get the row of distance between y and all other points
         wx = sum(dx(uxy) < dy(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
         wy = sum(dy(uxy) < dx(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
         
