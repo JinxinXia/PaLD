@@ -45,6 +45,8 @@ for i = 1:(n-1)
         b(1,uy) = 1;
         uxy = find(b ~= 0);
         
+        % should use the indices matrix to do the locap depth calculation
+        
         dx = D(x,:);% get the row of distance between x and all other points
         dy = D(y,:);% get the row of distance between y and all other points
         wx = sum(dx(uxy) < dy(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
