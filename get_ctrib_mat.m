@@ -33,10 +33,11 @@ for x = 1:(n-1)
         b = zeros(1,n);
         b(1,ux) = 1;
         b(1,uy) = 1;
-
+        
         % get all the unique indices(or points) to form conflict focus
         uxy = find(b ~= 0);
-        
+        uxy
+    
         % calculate local depth
         wx = sum(dx(uxy) < dy(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
         wy = sum(dy(uxy) < dx(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
