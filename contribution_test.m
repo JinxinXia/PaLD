@@ -4,9 +4,13 @@ rng(122);
 
 % create a random distance matrix that is symmetric with diagonal elements
 % equal to zeros
-d = rand(5,5);
+d = rand(50,50);
 D = (d+d')/2;
 D = D - diag(diag(D));
+
+
+profile on
+
 
 disp('our method')
 
@@ -25,5 +29,8 @@ tic
 C2 = get_cmat(D,1);
 toc
 % check distance between the output of two methods
+
+profile viewer
+
 fprintf('norm(C-C1): %f \n',norm(C-C1))
 fprintf('norm(C1-C2): %f \n',norm(C1-C2))
