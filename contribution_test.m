@@ -20,7 +20,7 @@ C = get_contribution_matrix(D,1);
 toc
 
 
-disp('their method')
+disp('sorted method')
 tic
 C2 = get_cmat(D,1);
 toc
