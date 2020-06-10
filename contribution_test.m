@@ -4,7 +4,7 @@ rng(122);
 
 % create a random distance matrix that is symmetric with diagonal elements
 % equal to zeros
-d = rand(5,5);
+d = rand(500,500);
 D = (d+d')/2;
 D = D - diag(diag(D));
 
