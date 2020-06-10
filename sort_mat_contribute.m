@@ -28,6 +28,9 @@ for i = 1:(n-1)
         x = i;
         y = sort_D_indices(i,j);
         
+        dx = D(x,:);% get the row of distance between x and all other points
+        dy = D(y,:);% get the row of distance between y and all other points
+        
         % ux contains the points that have a smaller distance with x
         % comparing with d(x,y)
         ux = sort_D_indices(i,1:j-1);
@@ -51,8 +54,7 @@ for i = 1:(n-1)
       
         % should use the indices matrix to do the locap depth calculation
         
-        dx = D(x,:);% get the row of distance between x and all other points
-        dy = D(y,:);% get the row of distance between y and all other points
+       
         wx = sum(dx(uxy) < dy(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
         wy = sum(dy(uxy) < dx(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
         
