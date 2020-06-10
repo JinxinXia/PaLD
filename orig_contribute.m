@@ -1,4 +1,4 @@
-function C = get_ctrib_mat(D,beta)
+function C = orig_contribute(D,beta)
 % D is the distance matrix, the value of D(x,y) is the distance between x 
 % and y (d(x,y)).
 % beta is the parameter to control the radius of conflict focus, the output
@@ -36,8 +36,7 @@ for x = 1:(n-1)
         
         % get all the unique indices(or points) to form conflict focus
         uxy = find(b ~= 0);
-        ux
-        uy
+ 
     
         % calculate local depth
         wx = sum(dx(uxy) < dy(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));

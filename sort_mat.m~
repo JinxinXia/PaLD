@@ -1,4 +1,4 @@
-function C = get_cmat(D,beta)
+function C = sort_mat_contribute(D,beta)
 
 
 % D is the distance matrix
