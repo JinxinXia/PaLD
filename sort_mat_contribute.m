@@ -54,7 +54,7 @@ for i = 1:(n-1)
         uxy = find(b ~= 0);
         
       
-    
+        
         % need to add the equal parts
         u_size = size(uxy,2);
         if u_size ~= 0
