@@ -52,20 +52,29 @@ for i = 1:(n-1)
         b(1,ux) = 1;
         b(1,uy) = 1;
         uxy = find(b ~= 0);
-        fprintf('\n sort_mat_contribute ')
-        uxy
-     
+        
+      
+        
         % need to add the equal parts
-        
-        % calculate local depth
-        wx = sum(dx(uxy) < dy(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
-        wy = sum(dy(uxy) < dx(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
         u_size = size(uxy,2);
-        
-        % assign local depth value to the corresponding position in C
         if u_size ~= 0
-            C(x,uxy) = C(x,uxy) + wx/u_size; 
-            C(y,uxy) = C(y,uxy) + wy/u_size;
+            for  k = 1:u_size
+                for h = 1:n
+                    if sort_D_indices(uxy(k),h) == x
+                        C(x,uxy(k)) = C(x,uxy(k)) + 1;
+                        continue;
+                    end
+                    
+                    if sort_D_indices(uxy(k),h) == y
+                
+                 if find() < find(sort_D_indices(uxy(k),y))
+                    
+                 else
+                     C(y,uxy(k)) = C(y,uxy(k)) + 1; 
+                end
+            end
+            C(x,uxy) = C(x,uxy)/(u_size);
+            C(y,uxy) = C(y,uxy)/(u_size);
         end
             
       
