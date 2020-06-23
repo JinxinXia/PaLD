@@ -43,6 +43,9 @@ for i = 1:(n-1)
         % row, uy_bound give the index where d(x,y) lives in the sorted
         % distance indices matrix
         
+        
+        % analysis the computational cost
+        
         uy_bound = find(sort_D_indices(y,:) == x);
         uy = sort_D_indices(y,1:uy_bound-1);
         
