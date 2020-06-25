@@ -4,11 +4,11 @@ rng(122);
 
 % create a random distance matrix that is symmetric with diagonal elements
 % equal to zeros
-d = rand(3,3);
+d = rand(1000,1000);
 
 D = (d+d')/2;
 D = D - diag(diag(D));
-D
+
 
 profile on
 

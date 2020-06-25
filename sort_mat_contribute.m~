@@ -16,7 +16,7 @@ C = zeros(n);
 
 % get the sorted indices matrix 
 sort_D_indices = get_sorted_indices(D);
-
+sort_D_indices
 
 % use sparse accumulator to get union of ux and uy
 % need to sort each row of the distance matrix
@@ -59,7 +59,8 @@ for i = 1:(n-1)
         b(1,ux) = 1;
         b(1,uy) = 1;
         uxy = find(b ~= 0);
-        
+        fprintf('\n sort_mat_contribute ')
+        uxy
      
         % need to add the equal parts
         
