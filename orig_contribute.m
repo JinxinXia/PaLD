@@ -21,32 +21,22 @@ for x = 1:(n-1)
     for y = (x+1):n
      
         dx = D(x,:); % get the row of distance between x and all other points 
-        dy = D(y,:); % get the row of distance between y and all other points
-        
-        % store all the indices whose element values is smaller than d(x,y)
-        % either in dx or dy
-        ux = find(dx <= beta*D(x,y)); 
-        uy = find(dy <= beta*D(x,y));
-        
-        % set a zero vector b and put one to the corresponding indices from
-        % ux and uy, we can get all the unique indices from this step
-        b = zeros(1,n);
-        b(1,ux) = 1;
-        b(1,uy) = 1;
-        
+        dy = D(y,:); % get the row of distance between y and all other points   
+       
         % get all the unique indices(or points) to form conflict focus
-        uxy = find(b ~= 0);
+        uxy = (dx <= beta*D(x,y) | dy <= beta*D(x,y));
        
         % calculate local depth
-        wx = sum(dx(uxy) < dy(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
-        wy = sum(dy(uxy) < dx(uxy)) + 0.5*sum(dy(uxy) == dx(uxy));
-        u_size = size(uxy,2);
+        zx = dx < dy; % z's closer to x
+        zz = dx == dy; % z's equidistant
+        zy = dx > dy; % z's closer to y
+        u_size = sum(uxy);
         
         % assign local depth value to the corresponding position in C
-        if u_size ~= 0
-            C(x,uxy) = C(x,uxy) + wx/u_size; 
-            C(y,uxy) = C(y,uxy) + wy/u_size;
-        end
+        C(x,zx & uxy) = C(x,zx & uxy) + 1/u_size; 
+        C(x,zz & uxy) = C(x,zz & uxy) + .5/u_size;
+        C(y,zy & uxy) = C(y,zy & uxy) + 1/u_size;
+        C(y,zz & uxy) = C(y,zz & uxy) + .5/u_size;
       
     end
 end
