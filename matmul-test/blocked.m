@@ -8,7 +8,7 @@ function C = blocked(A,B,b)
                 iend = min(i+b-1,size(C,1));
                 jend = min(j+b-1,size(C,2));
                 kend = min(k+b-1,size(A,2));
-                C(i:iend,j:jend) = C(i:iend,j:jend) + naive(A(i:iend,k:kend),B(k:kend,j:jend));
+                C(i:iend,j:jend) = C(i:iend,j:jend) + A(i:iend,k:kend)*B(k:kend,j:jend);
             end
         end
     end
