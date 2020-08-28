@@ -1,4 +1,4 @@
-function C = sort_mat_block(D,beta)
+function C = mat_block(D,beta)
 
 % compute coherence matrix C from distance matrix D using pre-sorting
 

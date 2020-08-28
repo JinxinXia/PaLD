@@ -24,9 +24,9 @@ toc
 %toc
 % check distance between the output of two methods
 
-disp('sorted block method')
+disp('block method')
 tic
-C3 = sort_mat_block(D,1);
+C3 = mat_block(D,1);
 toc 
 
 profile viewer
