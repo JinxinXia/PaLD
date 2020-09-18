@@ -4,7 +4,7 @@ rng(124);
 
 % create a random distance matrix that is symmetric with diagonal elements
 % equal to zeros
-d = rand(200);
+d = rand(4);
 
 D = (d+d')/2;
 D = D - diag(diag(D));
@@ -24,12 +24,17 @@ toc
 %toc
 % check distance between the output of two methods
 
-disp('block method')
+%disp('block method')
+%tic
+%[C3,U] = mat_block(D,1);
+%toc 
+
+disp('parallel method')
 tic
-C3 = mat_block(D,1);
+[C4,U] = par_orig_contribute(D,1);
 toc 
 
-profile viewer
 
-fprintf('norm(C1-C3): %f \n',norm(C1-C3))
+%profile viewer
+%fprintf('norm(C1-C3): %f \n',norm(C1-C3))
 
