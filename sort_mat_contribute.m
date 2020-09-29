@@ -1,4 +1,4 @@
-function C = sort_mat_contribute(D,beta)
+function [C,suxy] = sort_mat_contribute(D,beta)
 % compute coherence matrix C from distance matrix D using pre-sorting
 
 % error checking
@@ -16,11 +16,14 @@ C = zeros(n);
 [sorted_D,sorted_D_indices] = sort(D,2);
 
 % initialize sparse accumulator (SPA)
-b = zeros(1,n);
+suxy = zeros(n);
 
 % loop over all pairs x and y (in order of distance from x)
 for x = 1:(n-1)
-    for j = 1:n        
+    for j = 1:n  
+        
+        % initialize sparse accumulator (SPA)
+        uxy = false(1,n);
         
         %% Determine ux and uy using sorted rows
         % let ux be set of points within D(x,y) of x
@@ -40,47 +43,22 @@ for x = 1:(n-1)
         
         %% Compute size_uxy = |ux U uy| using SPA
         % set the values of SPA to 1 for entries in ux
-        b(sorted_D_indices(x,1:j)) = 1;
-        size_uxy = j;
-        % loop through entries in uy and count if not in ux
-        for i = 1:k
-            if b(sorted_D_indices(y,i)) == 0
-                b(sorted_D_indices(y,i)) = 1;
-                size_uxy = size_uxy+1;
-            end
-        end
+        uxy(sorted_D_indices(x,1:j)) = true;
+        uxy(sorted_D_indices(y,1:k)) = true;
+        size_uxy = nnz(uxy);
         
-        %% Accumulate coherence values for every entry in uxy using SPA
-        % loop through ux first
-        for i = 1:j
-            z = sorted_D_indices(x,i);
-            if D(x,z) < D(y,z)
-                C(x,z) = C(x,z) + 1 / size_uxy;
-            elseif D(x,z) > D(y,z)
-                C(y,z) = C(y,z) + 1 / size_uxy;
-            else
-                C(x,z) = C(x,z) + 0.5 / size_uxy;
-                C(y,z) = C(y,z) + 0.5 / size_uxy;
-            end
-            b(z) = 0;
-        end
-        % loop through uy next
-        for i = 1:k
-            z = sorted_D_indices(y,i);
-            % only process if not in ux
-            if b(z) == 1
-                if D(x,z) < D(y,z)
-                    C(x,z) = C(x,z) + 1 / size_uxy;
-                elseif D(x,z) > D(y,z)
-                    C(y,z) = C(y,z) + 1 / size_uxy;
-                else
-                    C(x,z) = C(x,z) + 0.5 / size_uxy;
-                    C(y,z) = C(y,z) + 0.5 / size_uxy;
-                end
-                b(z) = 0;
-            end 
-        end
-
+        % calculate local depth
+        zx = uxy & D(x,:) < D(y,:); % z's closer to x
+        zz = uxy & D(x,:) == D(y,:); % z's equidistant
+        zy = uxy & D(x,:) > D(y,:); % z's closer to y
+        
+        % assign local depth value to the corresponding position in C
+        C(x,zx) = C(x,zx) + 1/size_uxy; 
+        C(x,zz) = C(x,zz) + .5/size_uxy;
+        C(y,zy) = C(y,zy) + 1/size_uxy;
+        C(y,zz) = C(y,zz) + .5/size_uxy;
+            
+        suxy(x,y) = size_uxy;
     end
 end
 

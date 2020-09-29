@@ -1,16 +1,16 @@
 
-clear;
-rng(122);
+%clear;
+rng(13);
 
 % create a random distance matrix that is symmetric with diagonal elements
 % equal to zeros
-d = rand(100);
+d = rand(300);
 
 D = (d+d')/2;
 D = D - diag(diag(D));
 
 
-profile on
+%profile on
 
 
 disp('their method')
@@ -21,10 +21,10 @@ toc
 
 disp('sorted method')
 tic
-C2 = sort_mat_contribute(D,1);
+[C2,S] = sort_mat_contribute(D,1);
 toc
 % check distance between the output of two methods
 
-profile viewer
+%profile viewer
 
 fprintf('norm(C1-C2): %f \n',norm(C1-C2))
