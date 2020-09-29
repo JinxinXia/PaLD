@@ -1,4 +1,4 @@
-function C = orig_contribute(D,beta)
+function [C,F] = orig_contribute(D,beta)
 % D is the distance matrix, the value of D(x,y) is the distance between x 
 % and y (d(x,y)).
 % beta is the parameter to control the radius of conflict focus, the output
@@ -15,6 +15,7 @@ end
 
 n = size(D,1);
 C = zeros(n);
+F = zeros(n);
 
 
 for x = 1:(n-1)
@@ -31,6 +32,7 @@ for x = 1:(n-1)
         zz = dx == dy; % z's equidistant
         zy = dx > dy; % z's closer to y
         u_size = sum(uxy);
+        F(x,y) = u_size;
         
         % assign local depth value to the corresponding position in C
         C(x,zx & uxy) = C(x,zx & uxy) + 1/u_size; 
@@ -43,6 +45,7 @@ end
 
 % convert summed local depth to cohesion matrix
 C = C/(n-1);
+F = F + F';
 
 end
 
