@@ -16,7 +16,9 @@ n = size(D,1);
 C = zeros(n);
 U = zeros(n);
 
-
+% use optimal block (k=1) to do comparsion 
+% take advantage of the vectorize operation in MATLAB
+% same logic as optimal_blocked.m in matmul-test folder
 
 
 % loop over blocks to update conflict focus sizes
@@ -51,6 +53,8 @@ C = C/(n-1);
 
 
 end
+
+
 
 
 function Uij = update_cfs(Uij,Dij,Dik,Dkj,diagbool)
