@@ -1,10 +1,11 @@
 
 clear;
-rng(4);
+rng(6);
 
 % create a random distance matrix that is symmetric with diagonal elements
 % equal to zeros
 d = rand(1000);
+%d = [0 1 2 3; 1 0 4 5; 2 4 0 6; 3 5 6 0];
 D = (d+d')/2;
 D = D - diag(diag(D));
 
@@ -25,12 +26,12 @@ toc
 % where M is the cache size
 disp('block method')
 tic
-[C2,U] = matmul_block(D,1,100);
+[C2,U] = matmul_block(D,1,300);
 toc 
 
 disp('optimal block method')
 tic
-[C3,U1] = optimal_matmul_block(D,1,100);
+[C3,U1] = optimal_matmul_block(D,1,300);
 toc 
 
 
