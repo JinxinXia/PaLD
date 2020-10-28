@@ -8,7 +8,7 @@ d = rand(1000);
 D = (d+d')/2;
 D = D - diag(diag(D));
 
-profile on
+%profile on
 
 disp('their method')
 
@@ -25,12 +25,12 @@ toc
 % where M is the cache size
 disp('block method')
 tic
-[C2,U] = matmul_block(D,1,500);
+[C2,U] = matmul_block(D,1,100);
 toc 
 
 disp('optimal block method')
 tic
-[C3,U1] = optimal_matmul_block(D,1,500);
+[C3,U1] = optimal_matmul_block(D,1,100);
 toc 
 
 

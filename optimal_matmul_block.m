@@ -24,18 +24,20 @@ U = zeros(n);
 % loop over blocks to update conflict focus sizes
 for i = 1:b:n
     Ib = i:min(i+b-1,n);
-    diagbool = 1;
     for j = i:b:n
-        if j > i
-            diagbool = 0;
-        end
         Jb = j:min(j+b-1,n);
         % update size of conflict focus for block I,J of U
-        U(Ib,Jb) = update_cfs(U(Ib,Jb),D(Ib,Jb),D(Ib,:),D(:,Jb),diagbool);
+        Uij = zeros(size(U(Ib,Jb))); % temp buffer
+        Dij = D(Ib,Jb); % temp buffer
+        for k=1:n
+            % outer-product-like update
+            Uij = Uij + double(min(D(Ib,k),D(k,Jb)) < Dij);
+        end
+        U(Ib,Jb) = Uij; % copy temp buffer back to U
     end
 end
  
-U = U+U';
+%U = U+U';
 
 
 % loop over blocks to update cohesion matrix
@@ -43,8 +45,20 @@ for i = 1:b:n
     Ib = i:min(i+b-1,n);
     for j = i:b:n
         Jb = j:min(j+b-1,n);
+        
+        % compute size of conflict focus for block I,J
+        Uij = zeros(min(b,n-i+1),min(b,n-j+1)); % conflict focus sizes
+        Dij = D(Ib,Jb); % temp buffer
+        for k=1:n
+            % outer-product-like update
+            Uij = Uij + double(min(D(Ib,k),D(k,Jb)) < Dij);
+        end
+        
         % update cohesion values according to conflict foci (I,J)
-        [C(Ib,:),C(Jb,:)] = update_coh(C(Ib,:),C(Jb,:),D(Ib,Jb),D(Ib,:),D(:,Jb),U(Ib,Jb));
+        % update this function call to another k-loop with outer product
+        % like computations (updates will be to subcolumns of C corr. to
+        % C(Ib,k) or C(Jb,k)
+        [C(Ib,:),C(Jb,:)] = update_coh(C(Ib,:),C(Jb,:),D(Ib,Jb),D(Ib,:),D(:,Jb),Uij);
     end
 end
 
@@ -61,23 +75,17 @@ function Uij = update_cfs(Uij,Dij,Dik,Dkj,diagbool)
 % update conflict focus sizes for pairs in I,J block-pair 
 % based on vertices in K block
 
-    [m,n] = size(Uij);
     [~,p] = size(Dik);
     
-    for i = 1:m
-        % if working on diagonal block, compute only upper triangle
-        if diagbool == 1
-            startj = i+1;
-        else
-            startj = 1;
+    % make k the outer loop, then outer product like computation 
+    % updates the ij block
+    if diagbool
+        for k=1:p
+            Uij = Uij + double(triu(min(Dik(:,k),Dkj(k,:)) < Dij));
         end
-        for j=startj:n
-            for k=1:p
-                % determine if point k is in (i,j)'s focus
-                if min(Dik(i,k),Dkj(k,j)) < Dij(i,j)
-                    Uij(i,j) = Uij(i,j) + 1;
-                end
-            end
+    else
+        for k=1:p
+            Uij = Uij + double(min(Dik(:,k),Dkj(k,:)) < Dij);
         end
     end
     
@@ -91,13 +99,14 @@ function [Cik,Cjk] = update_coh(Cik,Cjk,Dij,Dik,Dkj,Uij)
     [m,n] = size(Uij);
     [~,p] = size(Dik);
     
-    for i = 1:m
-        for j=1:n
-            % skip case where point i is point j
-            if Dij(i,j) == 0
-                continue
-            end
-            for k=1:p
+    for k=1:p
+        for i = 1:m
+            for j=1:n
+                % skip case where point i is point j
+                if Dij(i,j) == 0
+                    continue
+                end
+            
                 % determine if point k is in (i,j)'s focus
                 if min(Dik(i,k),Dkj(k,j)) <= Dij(i,j)
                     % determine where k's contribution belongs
@@ -112,6 +121,7 @@ function [Cik,Cjk] = update_coh(Cik,Cjk,Dij,Dik,Dkj,Uij)
                 end
             end
         end
+        
     end
 
 
