@@ -11,12 +11,13 @@ D = D - diag(diag(D));
 
 %profile on
 
+%{
 disp('their method')
 
 tic
 [C1,F] = orig_contribute(D,1);
 toc
-
+%}
 
 % b is different based on cache size, the machine cache size 
 % in my computer is 9MB, which is around the size that could 
@@ -24,20 +25,24 @@ toc
 
 % in the raw block method, the b should equal to sqrt(M)/3
 % where M is the cache size
-disp('block method')
+%disp('block method')
+%tic
+%[C2,U] = matmul_block(D,1,300);
+%toc 
+
+ % opt_b(@optimal_matmul_block,D,8,10) 
+ % optimal b is 340
+
+profile on
+disp('optimal block method1')
 tic
-[C2,U] = matmul_block(D,1,300);
+[C3,U1] = optimal_matmul_block(D,1,340);
 toc 
 
-disp('optimal block method')
-tic
-[C3,U1] = optimal_matmul_block(D,1,300);
-toc 
 
+%norm(C1-C3)
 
-norm(C1-C3)
-
-
-
+profile off
+profsave(profile('info'),'optimal_matmul_block_runningtime_decomposition')
 
 
