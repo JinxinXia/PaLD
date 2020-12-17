@@ -1,12 +1,12 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
-#include <float.h>
+#include <string.h>
 
 /*
 params
-D    in  distance matrix: D(x,y) is distance between x and y (symmetric)
+D    in  distance matrix: D(x,y) is distance between x and y (symmetric,
+         but assumed to be stored in full)
 beta in  conflict focus parameter: z is in focus of (x,y) if 
          min(d(z,x),d(z,y)) <= beta * d(x,y)
 n    in  number of points
@@ -15,56 +15,128 @@ b    in  blocking parameter for cache efficiency
 */
 void pald_opt(double *D, double beta, int n, double* C, const int b)
 {
-    // pre-allocate conflict focus block
-    double *Uij = calloc(b * b, sizeof(double));
+    // declare indices
+    int x, y, z, i, j, xb, yb, ib;
 
-    // loop over blocks of points I = (i,...,i+b-1)
-    for (int i = 0; i < n; i += b)
-    {
-        int Ib = min(i + b - 1, n);
-        // loop over blocks of points J = (j,...,j+b-1)
-        for (j = i; j < n; j += b)
+    // pre-allocate conflict focus and distance cache blocks
+    int* UXY = (int*) malloc(b * b * sizeof(int));
+    double* DXY = (double*) malloc(b * b * sizeof(double));
+    
+    // initialize pointers for cache-block subcolumn vectors
+    double *DXz, *DYz, *CXz, *CYz;
+
+    // loop over blocks of points Y = (y,...,y+b-1)
+    for (y = 0; y < n; y += b)
+    {   
+        // define actual block size (for corner cases)
+        yb = (b < n-y ? b : n-y);
+
+        // loop over blocks of points X = (x,...,x+b-1)
+        for (x = 0; x <= y; x += b)
         {
-            int Jb = min(j + b - 1, n);
+            // define actual block size (for corner cases)
+            xb = (b < n-x ? b : n-x);
 
-            int dim_row = min(b, n - i + 1);
-            int dim_col = min(b, n - j + 1);
-            double Dij = D[Ib * n + Jb];
-            int k;
-
-            for (k = 0; k < n; k++)
+            // copy distances into cache block one column at a time
+            for (j = 0; j < yb; j++)
             {
-                if (fmin(D[Ib * n + k], D[k * n + Jb]) < Dij)
-                {
-                    int others;
-                    for (others = 0; others < dim_row * dim_col; others++)
-                        Uij[others]++;
-                }
+                // DXY(:,j) = D(x:x+xb,y+j) in off-diagonal case
+                ib = (x == y ? j : xb); // handle diagonal blocks
+                memcpy(DXY + j*xb, D + x + (y+j)*n, ib * sizeof(double));
             }
-            if (i == j)
-            {
-                int others;
-                for (others = 0; others < dim_row; others++)
-                {
-                    Uij[others * dim_row + others] = DBL_MAX;
-                }
-                int k;
 
-                //FIXME
-                /*for (k = 0; i < n; k++)
-                {
-                    C[Ib * dim_row + k] +=
-                }*/
-            }
-            else
+            // DEBUG: print out DXY cache block
+            /*printf("x %d y %d xb %d yb %d\n",x,y,xb,yb);
+            printf("\nDXY\n"); 
+            for (int i = 0; i < xb; i++)
+            {   
+                for (int j = 0; j < yb; j++)
+                {   
+                    printf("%f ", DXY[i+j*xb]);
+                }
+                printf("\n");
+            }   
+            printf("\n");*/
+
+            // compute block's conflict focus sizes by looping over all points z
+            memset(UXY, 0, b * b * sizeof(int)); // clear old values
+            DXz = D + x; DYz = D + y; // init pointers to subcolumns of D
+            for (z = 0; z < n; z++)
             {
-                /* code */
+                // loop over all (i,j) pairs in block
+                for (j = 0; j < yb; j++)
+                {
+                    ib = (x == y ? j : xb); // handle diagonal blocks
+                    for (i = 0; i < ib; i++)
+                        // DXY[i+j*xb] is distance between x+i and y+j
+                        // DXz[i] is distance between x+i and z
+                        // DYz[j] is distance between y+j and z
+                        
+                        // determine if z is in conflict focus of x+i and y+j
+                        if (DYz[j] < beta*DXY[i+j*xb] || DXz[i] < beta*DXY[i+j*xb])
+                          UXY[i+j*xb]++; 
+                }
+
+                // update pointers to subcolumns of D
+                DXz += n; DYz += n;
+            }
+
+            // DEBUG: print out UXY cache block
+            /*for (int i = 0; i < xb; i++)
+            {   
+                for (int j = 0; j < yb; j++)
+                {
+                    printf("%d ", UXY[i+j*xb]);
+                }
+                printf("\n");
+            }   
+            printf("\n");*/
+
+            // update cohesion values according to conflicts between X and Y 
+            // by looping over all points z
+            DXz = D + x; DYz = D + y; // init pointers to subcolumns of D
+            CXz = C + x; CYz = C + y; // init pointers to subcolumns of C
+            for (z = 0; z < n; z++)
+            {
+                // loop over all (i,j) pairs in block
+                for (j = 0; j < yb; j++)
+                {
+                    ib = (x == y ? j : xb); // handle diagonal blocks
+                    for (i = 0; i < ib; i++)
+                    {
+                        // DXY[i+j*xb] is distance between x+i and y+j
+                        // DXz[i] is distance between x+i and z
+                        // DYz[j] is distance between y+j and z
+                        
+                        // check if z is in conflict of (x+i,y+j)
+                        if (DYz[j] < beta*DXY[i+j*xb] || DXz[i] < beta*DXY[i+j*xb])
+                        {
+                           // z supports x+i
+                           if (DXz[i] < DYz[j])
+                               CXz[i] += 1.0 / UXY[i+j*xb];
+                           // z supports y+j
+                           else if (DYz[j] < DXz[i])
+                               CYz[j] += 1.0 / UXY[i+j*xb];
+                           // z splits its support
+                           else
+                           {
+                               CXz[i] += 0.5 / UXY[i+j*xb];
+                               CYz[j] += 0.5 / UXY[i+j*xb];
+                           } 
+                        }
+                    }
+                }
+
+                // update pointers to subcolumns of D and C
+                DXz += n; DYz += n;
+                CXz += n; CYz += n;
             }
         }
     }
 
-    // free up cache block
-    free(Uij);
+    // free up cache blocks
+    free(DXY);
+    free(UXY);
 }
 
 int main(int argc, char **argv)
@@ -75,6 +147,21 @@ int main(int argc, char **argv)
 
     double D[] = {0, 1, 2, 3, 1, 0, 4, 5, 2, 4, 0, 6, 3, 5, 6, 0};
     pald_opt(D, 1, n, C, 3);
+
+    // print out for error checking
+    printf("\n");
+    int i, j;
+    register int temp;
+    for (i = 0; i < n; i++)
+    {
+        for (j = 0; j < n; j++)
+        {
+            temp = i * n + j;
+            C[temp] /= (n - 1);
+            printf("%.5f ", C[temp]);
+        }
+        printf("\n");
+    }
 
     free(C);
 }

@@ -1,4 +1,4 @@
-function [C,U] = optimal_matmul_block(D,beta,b)
+function [C,U] = pald_opt(D,beta,b)
 % run optimial block algorithm on PaLD method
 % b <= sqrt(M+1)-1, where M is the cache size
 

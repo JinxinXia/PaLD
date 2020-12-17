@@ -1,4 +1,4 @@
-function [C,F] = orig_contribute(D,beta)
+function [C,F] = pald_orig(D,beta)
 % D is the distance matrix, the value of D(x,y) is the distance between x 
 % and y (d(x,y)).
 % beta is the parameter to control the radius of conflict focus, the output
