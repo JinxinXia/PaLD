@@ -74,7 +74,7 @@ void pald_opt(double *D, double beta, int n, double *C, const int b) {
                         // DYz[j] is distance between y+j and z
 
                         // determine if z is in conflict focus of x+i and y+j
-                        if (DYz[j] < beta * DXY[i + j * xb] || DXz[i] < beta * DXY[i + j * xb])
+                        if (DYz[j] <= beta * DXY[i + j * xb] || DXz[i] <= beta * DXY[i + j * xb])
                             UXY[i + j * xb]++;
                 }
 
@@ -110,7 +110,7 @@ void pald_opt(double *D, double beta, int n, double *C, const int b) {
                         // DYz[j] is distance between y+j and z
 
                         // check if z is in conflict of (x+i,y+j)
-                        if (DYz[j] < beta * DXY[i + j * xb] || DXz[i] < beta * DXY[i + j * xb]) {
+                        if (DYz[j] <= beta * DXY[i + j * xb] || DXz[i] <= beta * DXY[i + j * xb]) {
                             // z supports x+i
                             if (DXz[i] < DYz[j])
                                 CXz[i] += 1.0 / UXY[i + j * xb];

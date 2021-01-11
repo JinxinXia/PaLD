@@ -29,7 +29,7 @@ for i = 1:b:n
         % compute size of conflict focus for block I,J
         for k=1:n
             % outer-product-like update
-            Uij = Uij + double(min(D(Ib,k),D(Jb,k)') < Dij);
+            Uij = Uij + double(min(D(Ib,k),D(Jb,k)') <= Dij);
         end       
         
         
@@ -43,8 +43,8 @@ for i = 1:b:n
             % loop over contribution points
             for k=1:n
                 % determine contributions to C(Ib,k) (ignore Jb because Jb == Ib)
-                C(Ib,k) = C(Ib,k) + sum(double((D(Ib,k) < D(Jb,k)') & (D(Ib,k) < Dij)) ./ Uij,2);
-                C(Ib,k) = C(Ib,k) + .5*sum(double((D(Ib,k) == D(Jb,k)') & (D(Ib,k) < Dij)) ./ Uij,2);            
+                C(Ib,k) = C(Ib,k) + sum(double((D(Ib,k) < D(Jb,k)') & (D(Ib,k) <= Dij)) ./ Uij,2);
+                C(Ib,k) = C(Ib,k) + .5*sum(double((D(Ib,k) == D(Jb,k)') & (D(Ib,k) <= Dij)) ./ Uij,2);            
             end
             
         else % general case         
@@ -52,11 +52,11 @@ for i = 1:b:n
             % loop over contribution points
             for k=1:n
                 % determine contributions to C(Ib,k)
-                C(Ib,k) = C(Ib,k) + sum(double((D(Ib,k) < D(Jb,k)') & (D(Ib,k) < Dij)) ./ Uij,2);
-                C(Ib,k) = C(Ib,k) + .5*sum(double((D(Ib,k) == D(Jb,k)') & (D(Ib,k) < Dij)) ./ Uij,2);            
+                C(Ib,k) = C(Ib,k) + sum(double((D(Ib,k) < D(Jb,k)') & (D(Ib,k) <= Dij)) ./ Uij,2);
+                C(Ib,k) = C(Ib,k) + .5*sum(double((D(Ib,k) == D(Jb,k)') & (D(Ib,k) <= Dij)) ./ Uij,2);            
                 % determine contributions to C(Jb,k)
-                C(Jb,k) = C(Jb,k) + sum(double((D(Ib,k) > D(Jb,k)') & (D(Jb,k)' < Dij)) ./ Uij)';
-                C(Jb,k) = C(Jb,k) + .5*sum(double((D(Ib,k) == D(Jb,k)') & (D(Jb,k)' < Dij)) ./ Uij)';
+                C(Jb,k) = C(Jb,k) + sum(double((D(Ib,k) > D(Jb,k)') & (D(Jb,k)' <= Dij)) ./ Uij)';
+                C(Jb,k) = C(Jb,k) + .5*sum(double((D(Ib,k) == D(Jb,k)') & (D(Jb,k)' <= Dij)) ./ Uij)';
             end
         end
         
