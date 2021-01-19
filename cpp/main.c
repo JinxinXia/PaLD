@@ -3,9 +3,9 @@
 //
 #include <stdio.h>
 #include <stdlib.h>
-#include "pald_opt.h"
-#include "pald_orig.h"
-#include "utils.h"
+#include "pald_opt.c"
+#include "pald_orig.c"
+#include "utils.c"
 
 void print_out(int n, double *C) {
     printf("\n");
@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
     //initializing testing environment spec
     int n, cache_size, i;
     if ((argc != 2 && argc != 3) || !(n = atoi(argv[1]))) {
-        fprintf(stderr, "Usage: ./name distance_mat_size block_size");
+        fprintf(stderr, "Usage: ./name distance_mat_size block_size\n");
         exit(-1);
     }
 
