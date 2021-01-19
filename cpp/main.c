@@ -15,7 +15,7 @@ void print_out(int n, double *C) {
         for (j = 0; j < n; j++) {
             temp = i * n + j;
             C[temp] /= (n - 1);
-            printf("%.5f ", C[temp]);
+            printf("%.7f ", C[temp]);
         }
         printf("\n");
     }
@@ -23,16 +23,20 @@ void print_out(int n, double *C) {
 
 int main(int argc, char **argv) {
 
-    //creating dist matrix
-    int n = 10, cache_size = 2, i;
+    //initializing testing environment spec
+    int n, cache_size, i;
+    if ((argc != 2 && argc != 3) || !(n = atoi(argv[1]))) {
+        fprintf(stderr, "Usage: ./name distance_mat_size block_size");
+        exit(-1);
+    }
+
+    cache_size = argc == 2 ? 2 : atoi(argv[2]);
+
     unsigned int num_gen = n * n;
+
     double *C = calloc(num_gen, sizeof(double));
-
-    if (n < 1)
-        fprintf(stderr, "Matrix edge length must be positive");
-
     double *D = malloc(sizeof(double) * num_gen);
-    dist_mat_gen(D, n, 30, 0);
+    L2_dist_mat_gen2D(D, n, 30, 0);
 
     //print out dist matrix
     for (i = 0; i < num_gen; i++) {
@@ -40,7 +44,7 @@ int main(int argc, char **argv) {
         if (i % n == 0) {
             printf("\n");
         }
-        printf("%2.0f ", D[i]);
+        printf("%.2f ", D[i]);
     }
 
     //computing C with optimal block algorithm
