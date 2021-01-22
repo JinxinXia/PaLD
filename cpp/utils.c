@@ -37,24 +37,23 @@ void sym_mat_gen(double *D, const int edge_len, const int upper_limit, const uns
 
 //upper_limit is a place holder
 void L1_dist_mat_gen2D(double *D, const int edge_len, int upper_limit, const unsigned int seed) {
-    upper_limit = 35000;
     srand(seed);
     int i, j;
     int x[edge_len];
     int y[edge_len];
 
     for (i = 0; i < edge_len; i++)
-        x[i] = rand() % upper_limit - 17500;
+        x[i] = rand() % upper_limit - upper_limit / 2;
 
     for (i = 0; i < edge_len; i++)
-        y[i] = rand() % upper_limit - 17500;
+        y[i] = rand() % upper_limit - upper_limit / 2;
 
     for (i = 0; i < edge_len - 1; i++) {
         D[i * edge_len + i] = 0;
         for (j = i + 1; j < edge_len; j++) {
             register int x_dist = x[i] - x[j];
             register int y_dist = y[i] - y[j];
-            register double temp = abs(x_dist) + abs((y_dist));
+            register int temp = abs(x_dist) + abs((y_dist));
             //using L1 distance as example
             D[i * edge_len + j] = temp;
             D[j * edge_len + i] = temp;
@@ -66,17 +65,17 @@ void L1_dist_mat_gen2D(double *D, const int edge_len, int upper_limit, const uns
 }
 
 void L2_dist_mat_gen2D(double *D, const int edge_len, int upper_limit, const unsigned int seed) {
-    upper_limit = 35000;
+
     srand(seed);
     int i, j;
     int x[edge_len];
     int y[edge_len];
 
     for (i = 0; i < edge_len; i++)
-        x[i] = rand() % upper_limit - 17500;
+        x[i] = rand() % upper_limit - upper_limit / 2;
 
     for (i = 0; i < edge_len; i++)
-        y[i] = rand() % upper_limit - 17500;
+        y[i] = rand() % upper_limit - upper_limit / 2;
 
     for (i = 0; i < edge_len - 1; i++) {
         D[i * edge_len + i] = 0;

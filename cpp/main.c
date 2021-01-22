@@ -13,7 +13,7 @@ void print_out(int n, double *C) {
     register int temp;
     for (i = 0; i < n; i++) {
         for (j = 0; j < n; j++) {
-            temp = i * n + j;
+            temp = j * n + i;
             C[temp] /= (n - 1);
             printf("%.7f ", C[temp]);
         }
@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
 
     double *C = calloc(num_gen, sizeof(double));
     double *D = malloc(sizeof(double) * num_gen);
-    L2_dist_mat_gen2D(D, n, 30, 0);
+    L1_dist_mat_gen2D(D, n, 30, 0);
 
     //print out dist matrix
     for (i = 0; i < num_gen; i++) {
