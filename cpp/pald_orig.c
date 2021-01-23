@@ -36,7 +36,7 @@ void pald_orig(double *D, double beta, int n, double *C) {
                 double dzy = D[lin(z, y, n)]; // dist between z and y
 
                 // z contributes to x or y only if in conflict focus
-                if (dzx < dxy || dzy < dxy) {
+                if (dzx <= beta * dxy || dzy <= beta * dxy) {
                     if (dzx < dzy)
                         C[lin(x, z, n)] += 1.0 / cfs; // z closer to x than y
                     else if (dzy < dzx)

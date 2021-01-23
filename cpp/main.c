@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
 
     double *C = calloc(num_gen, sizeof(double));
     double *D = malloc(sizeof(double) * num_gen);
-    L1_dist_mat_gen2D(D, n, 30, 0);
+    L1_dist_mat_gen2D(D, n, 16, 0);
 
     //print out dist matrix
     for (i = 0; i < num_gen; i++) {
