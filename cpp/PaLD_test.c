@@ -4,9 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "pald_opt.c"
-#include "pald_orig.c"
-#include "utils.c"
+
+#include "kernels.h"
+#include "utils.h"
 
 void print_out(int n, double *C) {
     printf("\n");

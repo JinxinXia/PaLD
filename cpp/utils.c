@@ -2,10 +2,7 @@
 // Created by Yixin Zhang on 1/10/2021.
 //
 
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
+#include "utils.h"
 
 /*
 This is a distance matrix generator
