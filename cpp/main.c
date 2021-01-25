@@ -3,6 +3,7 @@
 //
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "pald_opt.c"
 #include "pald_orig.c"
 #include "utils.c"
@@ -25,6 +26,7 @@ int main(int argc, char **argv) {
 
     //initializing testing environment spec
     int n, cache_size, i;
+    
     if ((argc != 2 && argc != 3) || !(n = atoi(argv[1]))) {
         fprintf(stderr, "Usage: ./name distance_mat_size block_size\n");
         exit(-1);
@@ -49,26 +51,35 @@ int main(int argc, char **argv) {
     }*/
 
     //computing C with optimal block algorithm
+    clock_t start = clock();
     pald_opt(D, 1, n, C1, cache_size);
-
+    clock_t diff = clock() - start;
+    double msec_opt = 1. * diff / CLOCKS_PER_SEC;
+    
     //print out block algorithm result
-    //print_out(n, C1);
+    //print_out(n, C);
 
 
-    //computing C with original algorithm
+    //computing C with original algorithm  
+    start = clock();
     pald_orig(D, 1, n, C2);
+    diff = clock() - start;
+    double msec_orig = 1. * diff / CLOCKS_PER_SEC;
+
 
     //print out result of original algorithm
-    //print_out(n, C2);
+    //print_out(n, C);
     // print out for error checking
 
     // compute max norm error between two cohesion matrices
-    double diff, maxdiff = 0.;
+    double d, maxdiff = 0.;
     for (i = 0; i < num_gen; i++) {
-        diff = fabs(C1[i]-C2[i]);
-        maxdiff = diff > maxdiff ? diff : maxdiff;
+        d = fabs(C1[i]-C2[i]);
+        maxdiff = d > maxdiff ? d : maxdiff;
     }
     printf("Maximum difference: %1.1e \n", maxdiff);
+
+    printf("Orig time: %.3fs\nOpt time: %.3fs\n",msec_orig,msec_opt);
 
     free(D);
     free(C2);
