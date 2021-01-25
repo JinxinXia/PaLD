@@ -35,62 +35,53 @@ void sym_mat_gen(double *D, const int edge_len, const int upper_limit, const uns
 
 }
 
-//upper_limit is a place holder
-void L1_dist_mat_gen2D(double *D, const int edge_len, int upper_limit, const unsigned int seed) {
-    upper_limit = 35000;
-    srand(seed);
-    int i, j;
-    int x[edge_len];
-    int y[edge_len];
-
-    for (i = 0; i < edge_len; i++)
-        x[i] = rand() % upper_limit - 17500;
-
-    for (i = 0; i < edge_len; i++)
-        y[i] = rand() % upper_limit - 17500;
-
-    for (i = 0; i < edge_len - 1; i++) {
-        D[i * edge_len + i] = 0;
-        for (j = i + 1; j < edge_len; j++) {
-            register int x_dist = x[i] - x[j];
-            register int y_dist = y[i] - y[j];
-            register double temp = abs(x_dist) + abs((y_dist));
-            //using L1 distance as example
-            D[i * edge_len + j] = temp;
-            D[j * edge_len + i] = temp;
-        }
+void point_gen2D(double* x, double* y, int n, int min, int max) {
+    for (int i = 0; i < n; i++) {
+        x[i] = rand() % (max-min) + min;
+        y[i] = rand() % (max-min) + min;
     }
-    D[edge_len * edge_len - 1] = 0;
-
-
 }
 
-void L2_dist_mat_gen2D(double *D, const int edge_len, int upper_limit, const unsigned int seed) {
-    upper_limit = 35000;
+void dist_mat_gen2D(double *D, int n, int min, int max, int seed, char dist) {
     srand(seed);
     int i, j;
-    int x[edge_len];
-    int y[edge_len];
 
-    for (i = 0; i < edge_len; i++)
-        x[i] = rand() % upper_limit - 17500;
+    // allocate space for points
+    double* x = calloc(n, sizeof(double));
+    double* y = calloc(n, sizeof(double));
 
-    for (i = 0; i < edge_len; i++)
-        y[i] = rand() % upper_limit - 17500;
+    // generate points in [min,max] x [min,max]
+    point_gen2D(x,y,n,min,max);
 
-    for (i = 0; i < edge_len - 1; i++) {
-        D[i * edge_len + i] = 0;
-        for (j = i + 1; j < edge_len; j++) {
-            register int x_dist = x[i] - x[j];
-            register int y_dist = y[i] - y[j];
-            register double temp = sqrt(x_dist * x_dist + y_dist * y_dist);
-            //using L1 distance as example
-            D[i * edge_len + j] = temp;
-            D[j * edge_len + i] = temp;
+    //DEBUG
+    /*for(i = 0; i < n; i++) {
+        printf("%f,%f\n",x[i],y[i]);
+    }*/
+
+    // compute pairwise  distances
+    for (i = 0; i < n; i++) {
+        for (j = i; j < n; j++) {
+            if(dist == '1') {
+                // L1 distance
+                D[i * n + j] = fabs(x[i] - x[j]) + fabs(y[i] - y[j]);
+                
+            } else if(dist == '2') {
+                // L2 distance
+                D[i * n + j] = sqrt(pow(x[i] - x[j],2) + pow(y[i] - y[j],2));
+
+            } else {
+                printf("Unknown distance!\n");
+                exit(1);
+            }
+            // store explicit symmetry
+            D[j * n + i] = D[i * n + j];
         }
     }
-    D[edge_len * edge_len - 1] = 0;
 
-
+    // free up points
+    free(y);
+    free(x);
 }
+
+
 

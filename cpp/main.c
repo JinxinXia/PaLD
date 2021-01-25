@@ -13,7 +13,7 @@ void print_out(int n, double *C) {
     register int temp;
     for (i = 0; i < n; i++) {
         for (j = 0; j < n; j++) {
-            temp = i * n + j;
+            temp = j * n + i;
             C[temp] /= (n - 1);
             printf("%.7f ", C[temp]);
         }
@@ -34,35 +34,43 @@ int main(int argc, char **argv) {
 
     unsigned int num_gen = n * n;
 
-    double *C = calloc(num_gen, sizeof(double));
+    double *C1 = calloc(num_gen, sizeof(double));
+    double *C2 = calloc(num_gen, sizeof(double));
     double *D = malloc(sizeof(double) * num_gen);
-    L2_dist_mat_gen2D(D, n, 30, 0);
+    dist_mat_gen2D(D, n, 1, 5, 12345, '1');
 
     //print out dist matrix
-    for (i = 0; i < num_gen; i++) {
+    /*for (i = 0; i < num_gen; i++) {
 
         if (i % n == 0) {
             printf("\n");
         }
         printf("%.2f ", D[i]);
-    }
+    }*/
 
     //computing C with optimal block algorithm
-    pald_opt(D, 1, n, C, cache_size);
+    pald_opt(D, 1, n, C1, cache_size);
 
     //print out block algorithm result
-    print_out(n, C);
+    //print_out(n, C1);
 
-    free(C);
 
     //computing C with original algorithm
-    C = calloc(num_gen, sizeof(double));
-    pald_orig(D, 1, n, C);
+    pald_orig(D, 1, n, C2);
 
     //print out result of original algorithm
-    print_out(n, C);
+    //print_out(n, C2);
     // print out for error checking
 
+    // compute max norm error between two cohesion matrices
+    double diff, maxdiff = 0.;
+    for (i = 0; i < num_gen; i++) {
+        diff = fabs(C1[i]-C2[i]);
+        maxdiff = diff > maxdiff ? diff : maxdiff;
+    }
+    printf("Maximum difference: %1.1e \n", maxdiff);
+
     free(D);
-    free(C);
+    free(C2);
+    free(C1);
 }
