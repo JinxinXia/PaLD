@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
     double *C1 = calloc(num_gen, sizeof(double));
     double *C2 = calloc(num_gen, sizeof(double));
     double *D = malloc(sizeof(double) * num_gen);
-    dist_mat_gen2D(D, n, 1, 5, 12345, '1');
+    dist_mat_gen2D(D, n, 1, 10*n, 12345, '2');
 
     //print out dist matrix
     /*for (i = 0; i < num_gen; i++) {
