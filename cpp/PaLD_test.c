@@ -42,14 +42,15 @@ int main(int argc, char **argv) {
     dist_mat_gen2D(D, n, 1, 10*n, 12345, '2');
 
     //print out dist matrix
+    /*
     for (i = 0; i < num_gen; i++) {
 
         if (i % n == 0) {
             printf("\n");
         }
         printf("%.2f ", D[i]);
-    }
-    FILE *f = fopen("client.data", "wb");
+    }*/
+    FILE *f = fopen("dist_mat.bin", "wb");
     fwrite(D, sizeof(double), num_gen, f);
     fclose(f);
     //computing C with optimal block algorithm
