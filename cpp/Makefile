@@ -1,9 +1,9 @@
 CC = gcc
-CFLAGS = -Wall -O3
-LDFLAGS = -lm
+CFLAGS = -Wall -O3 -fopenmp
+LDFLAGS = -lm -fopenmp
 
-objects = PaLD_test.o kernels.o utils.o
-targets = PaLD_test
+objects = kernels.o utils.o
+targets = PaLD_test PaLD_par_test
 
 .PHONY : default
 default: $(targets)
@@ -11,7 +11,10 @@ default: $(targets)
 .PHONY : all
 all: clean $(targets)
 
-PaLD_test : $(objects)
+PaLD_test : PaLD_test.o $(objects)
+	$(CC) $^ -o $@ $(LDFLAGS) 
+
+PaLD_par_test : PaLD_par_test.o $(objects)
 	$(CC) $^ -o $@ $(LDFLAGS) 
 
 %.o : %.c %.h
