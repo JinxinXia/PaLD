@@ -193,8 +193,6 @@ b    in  blocking parameter for cache efficiency
 t    in  number of OMP threads to use
 */
 void pald_opt_par(double *D, double beta, int n, double *C, const int b, int t) {
-    // declare indices
-    int x, y, z, i, j, xb, yb, ib;
 
     // decare timers
     double tic, cum_time_U = 0, cum_time_C = 0;
@@ -203,23 +201,20 @@ void pald_opt_par(double *D, double beta, int n, double *C, const int b, int t) 
     int *UXY = (int *) malloc(b * b * sizeof(int));
     double *DXY = (double *) malloc(b * b * sizeof(double));
 
-    // initialize pointers for cache-block subcolumn vectors
-    double *DXz, *DYz, *CXz, *CYz;
-
     // loop over blocks of points Y = (y,...,y+b-1)
-    for (y = 0; y < n; y += b) {
+    for (int y = 0; y < n; y += b) {
         // define actual block size (for corner cases)
-        yb = (b < n - y ? b : n - y);
+        int yb = (b < n - y ? b : n - y);
 
         // loop over blocks of points X = (x,...,x+b-1)
-        for (x = 0; x <= y; x += b) {
+        for (int x = 0; x <= y; x += b) {
             // define actual block size (for corner cases)
-            xb = (b < n - x ? b : n - x);
+            int xb = (b < n - x ? b : n - x);
 
             // copy distances into cache block one column at a time
-            for (j = 0; j < yb; j++) {
+            for (int j = 0; j < yb; j++) {
                 // DXY(:,j) = D(x:x+xb,y+j) in off-diagonal case
-                ib = (x == y ? j : xb); // handle diagonal blocks
+                int ib = (x == y ? j : xb); // handle diagonal blocks
                 memcpy(DXY + j * xb, D + x + (y + j) * n, ib * sizeof(double));
             }
 
@@ -238,15 +233,16 @@ void pald_opt_par(double *D, double beta, int n, double *C, const int b, int t) 
 
             // compute block's conflict focus sizes by looping over all points z
             memset(UXY, 0, b * b * sizeof(int)); // clear old values
-            DXz = D + x;
-            DYz = D + y; // init pointers to subcolumns of D
             tic = omp_get_wtime();
-            // would like to use #pragma omp parallel for reduction (+:UXY) but UXY is an array...
-            for (z = 0; z < n; z++) {
+            #pragma omp parallel for num_threads(t) reduction(+:UXY[:b*b])
+            for (int z = 0; z < n; z++) {
+                // set pointers to subcolumns of D
+                double* DXz = D + x + z*n;
+                double* DYz = D + y + z*n; 
                 // loop over all (i,j) pairs in block
-                for (j = 0; j < yb; j++) {
-                    ib = (x == y ? j : xb); // handle diagonal blocks
-                    for (i = 0; i < ib; i++)
+                for (int j = 0; j < yb; j++) {
+                    int ib = (x == y ? j : xb); // handle diagonal blocks
+                    for (int i = 0; i < ib; i++)
                         // DXY[i+j*xb] is distance between x+i and y+j
                         // DXz[i] is distance between x+i and z
                         // DYz[j] is distance between y+j and z
@@ -255,10 +251,6 @@ void pald_opt_par(double *D, double beta, int n, double *C, const int b, int t) 
                         if (DYz[j] <= beta * DXY[i + j * xb] || DXz[i] <= beta * DXY[i + j * xb])
                             UXY[i + j * xb]++;
                 }
-
-                // update pointers to subcolumns of D
-                DXz += n;
-                DYz += n;
             }
             cum_time_U += omp_get_wtime() - tic;
 
@@ -276,16 +268,18 @@ void pald_opt_par(double *D, double beta, int n, double *C, const int b, int t) 
             // update cohesion values according to conflicts between X and Y
             // by looping over all points z
             tic = omp_get_wtime();
-            #pragma omp parallel for private(DXz,DYz,CXz,CYz,i,j,ib) num_threads(t)
-            for (z = 0; z < n; z++) {
-                DXz = D + x + z*n;
-                DYz = D + y + z*n; // init pointers to subcolumns of D
-                CXz = C + x + z*n;
-                CYz = C + y + z*n; // init pointers to subcolumns of C
+            #pragma omp parallel for num_threads(t)
+            for (int z = 0; z < n; z++) {
+                // set pointers to subcolumns of D
+                double* DXz = D + x + z*n;
+                double* DYz = D + y + z*n; 
+                // set pointers to subcolumns of C
+                double* CXz = C + x + z*n;
+                double* CYz = C + y + z*n; 
                 // loop over all (i,j) pairs in block
-                for (j = 0; j < yb; j++) {
-                    ib = (x == y ? j : xb); // handle diagonal blocks
-                    for (i = 0; i < ib; i++) {
+                for (int j = 0; j < yb; j++) {
+                    int ib = (x == y ? j : xb); // handle diagonal blocks
+                    for (int i = 0; i < ib; i++) {
                         // DXY[i+j*xb] is distance between x+i and y+j
                         // DXz[i] is distance between x+i and z
                         // DYz[j] is distance between y+j and z
