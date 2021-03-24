@@ -35,3 +35,9 @@ tic
 [C3,U1] = pald_opt(D,1,b2);
 toc 
 fprintf('error in optimal blocked method is %g\n', norm(C1-C3))
+
+fprintf('triplet method, same dimension\n')
+tic
+[C4,U4] = pald_triplet(D);
+toc 
+fprintf('error in triplet method is %g\n', norm(C1-C4))
