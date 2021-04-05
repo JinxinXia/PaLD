@@ -1,7 +1,7 @@
 #include "kernels.h"
 
 // linear indexing function assuming column major
-int lin(int i, int j, int n) { return i + j * n; }
+inline int lin(int i, int j, int n) { return i + j * n; }
 
 /*
 params

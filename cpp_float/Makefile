@@ -18,7 +18,7 @@ PaLD_par_test : PaLD_par_test.o $(objects)
 	$(CC) $^ -o $@ $(LDFLAGS) 
 
 %.o : %.c %.h
-	$(CC) -c $(CFLAGS) -pc32 $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 
 .PHONY : clean
 clean :
