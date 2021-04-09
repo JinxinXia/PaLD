@@ -36,14 +36,14 @@ void pald_orig(float *D, float beta, int n, float *C) {
                 // z contributes to x or y only if in conflict focus
                 if (dzx <= beta * dxy || dzy <= beta * dxy) {
                     if (dzx < dzy)
-                        C[lin(x, z, n)] += 1.0 / cfs; // z closer to x than y
+                        C[lin(x, z, n)] += 1.0f / cfs; // z closer to x than y
                     else if (dzy < dzx)
-                        C[lin(y, z, n)] += 1.0 / cfs; // z closer to y than x
+                        C[lin(y, z, n)] += 1.0f / cfs; // z closer to y than x
 
                     else {
                         // z equidistant to x and y
-                        C[lin(x, z, n)] += 0.5 / cfs;
-                        C[lin(y, z, n)] += 0.5 / cfs;
+                        C[lin(x, z, n)] += 0.5f / cfs;
+                        C[lin(y, z, n)] += 0.5f / cfs;
                     }
                 }
             }
@@ -63,7 +63,7 @@ b    in  blocking parameter for cache efficiency
 void pald_opt(float *D, float beta, int n, float *C, const int b) {
     // declare indices
     int x, y, z, i, j, xb, yb, ib;
-    float one = 1, half = 0.5;
+
     // pre-allocate conflict focus and distance cache blocks
     int *UXY = (int *) malloc(b * b * sizeof(int));
     float *DXY = (float *) malloc(b * b * sizeof(float));
@@ -154,14 +154,14 @@ void pald_opt(float *D, float beta, int n, float *C, const int b) {
                         if (DYz[j] <= beta * DXY[i + j * xb] || DXz[i] <= beta * DXY[i + j * xb]) {
                             // z supports x+i
                             if (DXz[i] < DYz[j])
-                                CXz[i] += one / UXY[i + j * xb];
+                                CXz[i] += 1.0f / UXY[i + j * xb];
                                 // z supports y+j
                             else if (DYz[j] < DXz[i])
-                                CYz[j] += one / UXY[i + j * xb];
+                                CYz[j] += 1.0f / UXY[i + j * xb];
                                 // z splits its support
                             else {
-                                CXz[i] += half / UXY[i + j * xb];
-                                CYz[j] += half / UXY[i + j * xb];
+                                CXz[i] += 0.5f / UXY[i + j * xb];
+                                CYz[j] += 0.5f / UXY[i + j * xb];
                             }
                         }
                     }
@@ -194,8 +194,6 @@ t    in  number of OMP threads to use
 */
 void pald_opt_par(float *D, float beta, int n, float *C, const int b, int t) {
 
-    // decare timers
-    float one = 1, half = 0.5;
     // pre-allocate conflict focus and distance cache blocks
     int *UXY = (int *) malloc(b * b * sizeof(int));
     float *DXY = (float *) malloc(b * b * sizeof(float));
@@ -251,13 +249,16 @@ void pald_opt_par(float *D, float beta, int n, float *C, const int b, int t) {
                 }
             }
 
-            for (int i = 0; i < xb; i++)
+            // DEBUG: print out UXY cache block
+            /*for (int i = 0; i < xb; i++)
             {
                 for (int j = 0; j < yb; j++)
                 {
-                    UXY[i+j*xb]= one / UXY[i+j*xb];
+                    printf("%d ", UXY[i+j*xb]);
                 }
+                printf("\n");
             }
+            printf("\n");*/
 
             // update cohesion values according to conflicts between X and Y
             // by looping over all points z
@@ -281,14 +282,14 @@ void pald_opt_par(float *D, float beta, int n, float *C, const int b, int t) {
                         if (DYz[j] <= beta * DXY[i + j * xb] || DXz[i] <= beta * DXY[i + j * xb]) {
                             // z supports x+i
                             if (DXz[i] < DYz[j])
-                                CXz[i] += UXY[i + j * xb];
+                                CXz[i] += 1.0f / UXY[i + j * xb];
                                 // z supports y+j
                             else if (DYz[j] < DXz[i])
-                                CYz[j] += UXY[i + j * xb];
+                                CYz[j] += 1.0f / UXY[i + j * xb];
                                 // z splits its support
                             else {
-                                CXz[i] += half * UXY[i + j * xb];
-                                CYz[j] += half * UXY[i + j * xb];
+                                CXz[i] += 0.5f / UXY[i + j * xb];
+                                CYz[j] += 0.5f / UXY[i + j * xb];
                             }
                         }
                     }

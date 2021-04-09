@@ -1,0 +1,10 @@
+500  Orig time: 0.360s  Opt time: 0.391s
+1000  Orig time: 2.887s  Opt time: 2.989s
+1500  Orig time: 9.861s  Opt time: 10.108s
+2000  Orig time: 24.438s  Opt time: 23.843s
+2500  Orig time: 51.240s  Opt time: 46.559s
+3000  Orig time: 89.606s  Opt time: 80.912s
+3500  Orig time: 149.556s  Opt time: 128.461s
+4000  Orig time: 214.676s  Opt time: 192.200s
+4500  Orig time: 329.830s  Opt time: 273.443s
+5000  Orig time: 444.913s  Opt time: 374.849s

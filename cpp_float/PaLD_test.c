@@ -50,11 +50,14 @@ int main(int argc, char **argv) {
         }
         printf("%.2f ", D[i]);
     }*/
+    FILE *f = fopen("dist_mat.bin", "wb");
+    fwrite(D, sizeof(float), num_gen, f);
+    fclose(f);
     //computing C with optimal block algorithm
     clock_t start = clock();
     pald_opt(D, 1, n, C1, cache_size);
     clock_t diff = clock() - start;
-    float msec_opt = 1. * diff / CLOCKS_PER_SEC;
+    double  msec_opt = 1. * diff / CLOCKS_PER_SEC;
     
     //print out block algorithm result
     //print_out(n, C);
@@ -64,7 +67,7 @@ int main(int argc, char **argv) {
     start = clock();
     pald_orig(D, 1, n, C2);
     diff = clock() - start;
-    float msec_orig = 1. * diff / CLOCKS_PER_SEC;
+    double msec_orig = 1. * diff / CLOCKS_PER_SEC;
 
 
     //print out result of original algorithm
@@ -72,7 +75,6 @@ int main(int argc, char **argv) {
     // print out for error checking
 
     // compute max norm error between two cohesion matrices
-   
     float d, maxdiff = 0.;
     for (i = 0; i < num_gen; i++) {
         d = fabs(C1[i]-C2[i]);
