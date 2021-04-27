@@ -3,7 +3,7 @@ rng(6);
 
 % create a random distance matrix that is symmetric with diagonal elements
 % equal to zeros
-n = 4; b1 = 100; b2 = 2;
+n = 2000; b1 = 100; b2 = 300;
 d = rand(n);
 %d = [0 1 2 3; 1 0 4 5; 2 4 0 6; 3 5 6 0];
 D = (d+d')/2;
@@ -38,7 +38,7 @@ tic
 toc 
 fprintf('error in optimal blocked method is %g\n', norm(C1-C3))
 
-
+%}
 
 
 fprintf('triplet method, same dimension\n')
@@ -46,7 +46,7 @@ tic
 [C4,U4] = pald_triplet(D);
 toc 
 fprintf('error in triplet method is %g\n', norm(C1-C4))
-%}
+
 
 
 fprintf('triplet block method, same dimension\n')
