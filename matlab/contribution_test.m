@@ -3,7 +3,7 @@ rng(6);
 
 % create a random distance matrix that is symmetric with diagonal elements
 % equal to zeros
-n = 2000; b1 = 100; b2 = 300;
+n = 6; b1 = 100; b2 = 4;
 d = rand(n);
 %d = [0 1 2 3; 1 0 4 5; 2 4 0 6; 3 5 6 0];
 D = (d+d')/2;

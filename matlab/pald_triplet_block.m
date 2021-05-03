@@ -43,34 +43,11 @@ end
 C = diag(sum(1./(U+diag(Inf*ones(n,1))),2)); 
 
 
-% non block method 
-
-% consider all unique triplets to compute contributions to cohesion
-for x = 1:(n-1)
-    for y = (x+1):n
-        for z = (y+1):n
-            if D(x,y) < D(x,z) && D(x,y) < D(y,z)     % xy is closest pair
-                C(x,y) = C(x,y) + 1 / U(x,z);
-                C(y,x) = C(y,x) + 1 / U(y,z);
-            elseif D(x,z) < D(x,y) && D(x,z) < D(y,z) % xz is closest pair
-                C(x,z) = C(x,z) + 1 / U(x,y);
-                C(z,x) = C(z,x) + 1 / U(y,z);
-            else                                      % yz is closest pair
-                C(y,z) = C(y,z) + 1 / U(x,y);
-                C(z,y) = C(z,y) + 1 / U(x,z);
-            end
-        end
-    end
-end      
-
-
-
-
 
 
 % consider all unique triplets to compute contributions to cohesion
 
-%{
+
 for x = 1:b:n
     Xb = x:min(x+b-1,n);
     for y = x:b:n
@@ -81,27 +58,27 @@ for x = 1:b:n
             if x == y && y == z
                 [C(Xb,Yb)] = update_coh(U(Xb,Yb),D(Xb,Yb),C(Xb,Yb));
             elseif x == y
-                C/(n-1)
+                
                 [C(Xb,Yb),C(Xb,Zb),C(Zb,Xb)] = ...
                     update_coh1(U(Xb,Yb),U(Xb,Zb),D(Xb,Yb),D(Xb,Zb),C(Xb,Yb),C(Xb,Zb),C(Zb,Xb));
-                [x,y,z]
-                C/(n-1)
+                
             elseif y == z
                 %C(Zb,Xb)/(n-1)
                 [C(Xb,Zb),C(Yb,Zb),C(Zb,Xb)] = ...
-                    update_coh2(U(Xb,Zb),U(Zb,Xb),D(Xb,Zb),D(Zb,Xb),C(Xb,Zb),C(Yb,Zb),C(Zb,Xb));
+                    update_coh2(U(Xb,Zb),U(Yb,Zb),D(Xb,Zb),D(Yb,Zb),C(Xb,Zb),C(Yb,Zb),C(Zb,Xb));
                 %[x,y,z]
                 %C(Zb,Xb)/(n-1)
             else
                 [C(Xb,Yb),C(Xb,Zb),C(Yb,Zb),C(Yb,Xb),C(Zb,Xb),C(Zb,Yb)] = ...
             update_coh3(U(Xb,Yb),U(Xb,Zb),U(Yb,Zb),D(Xb,Yb),D(Xb,Zb),D(Yb,Zb),C(Xb,Yb),C(Xb,Zb),C(Yb,Zb),C(Yb,Xb),C(Zb,Xb),C(Zb,Yb));
             end
-            
+            [x,y,z]
+            C/(n-1)
         end
     end
 end    
 
-%}
+
 
 C = C/(n-1);
 end
@@ -277,7 +254,7 @@ function [Cxz,Cyz,Czx] = update_coh2(Uxz,Uyz,Dxz,Dyz,Cxz,Cyz,Czx)
      for x = 1:m
         for y = 1:n
             for z = (y+1):n
-
+                
                 if Dxz(x,y) < Dxz(x,z) && Dxz(x,y) < Dyz(y,z)     % xy is closest pair
                     Cxz(x,y) = Cxz(x,y) + 1/Uxz(x,z);
                     Czx(y,x) = Czx(y,x) + 1/Uyz(y,z);
@@ -285,8 +262,15 @@ function [Cxz,Cyz,Czx] = update_coh2(Uxz,Uyz,Dxz,Dyz,Cxz,Cyz,Czx)
                     Cxz(x,z) = Cxz(x,z) + 1/Uxz(x,y);
                     Czx(z,x) = Czx(z,x) + 1/Uyz(y,z);
                 else                                      % yz is closest pair
-                    Cyz(y,z) = Cyz(y,z) + 1/Uxz(x,y);
-                    Cyz(z,y) = Cyz(z,y) + 1/Uxz(x,z);
+                    [x,y,z]
+                    Uxz % Uxz is not symmetric
+                    Cyz
+                    Cyz(y,z) = Cyz(y,z)+ 1/Uxz(x,y);
+                    
+                    Cyz(z,y) = Cyz(z,y)+ 1/Uxz(x,y); % need less 0.16777
+                  
+                    
+                    Cyz
                 end
 
             end
