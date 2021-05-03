@@ -63,17 +63,16 @@ for x = 1:b:n
                     update_coh1(U(Xb,Yb),U(Xb,Zb),D(Xb,Yb),D(Xb,Zb),C(Xb,Yb),C(Xb,Zb),C(Zb,Xb));
                 
             elseif y == z
-                %C(Zb,Xb)/(n-1)
+
                 [C(Xb,Zb),C(Yb,Zb),C(Zb,Xb)] = ...
                     update_coh2(U(Xb,Zb),U(Yb,Zb),D(Xb,Zb),D(Yb,Zb),C(Xb,Zb),C(Yb,Zb),C(Zb,Xb));
-                %[x,y,z]
-                %C(Zb,Xb)/(n-1)
+               
             else
                 [C(Xb,Yb),C(Xb,Zb),C(Yb,Zb),C(Yb,Xb),C(Zb,Xb),C(Zb,Yb)] = ...
             update_coh3(U(Xb,Yb),U(Xb,Zb),U(Yb,Zb),D(Xb,Yb),D(Xb,Zb),D(Yb,Zb),C(Xb,Yb),C(Xb,Zb),C(Yb,Zb),C(Yb,Xb),C(Zb,Xb),C(Zb,Yb));
             end
-            [x,y,z]
-            C/(n-1)
+            
+            C/(n-1);
         end
     end
 end    
@@ -231,14 +230,14 @@ function [Cxy,Cxz,Czx] = update_coh1(Uxy,Uxz,Dxy,Dxz,Cxy,Cxz,Czx)
             for z=1:n
 
                 if Dxy(x,y) < Dxz(x,z) && Dxy(x,y) < Dxz(y,z)     % xy is closest pair
-                    Cxy(x,y) = Cxy(x,y) + 1/Uxz(x,z);
-                    Cxy(y,x) = Cxy(y,x) + 1/Uxz(y,z);
+                    Cxy(x,y) = Cxy(x,y) + 1/Uxz(x,z);   
+                    Cxy(y,x) = Cxy(y,x) + 1/Uxz(y,z);   %Uxz = Uyz 
                 elseif Dxz(x,z) < Dxy(x,y) && Dxz(x,z) < Dxz(y,z) % xz is closest pair
                     Cxz(x,z) = Cxz(x,z) + 1/Uxy(x,y);
-                    Czx(z,x) = Czx(z,x) + 1/Uxz(y,z);
+                    Czx(z,x) = Czx(z,x) + 1/Uxz(y,z);   %Uxz = Uyz
                 else                                      % yz is closest pair
-                    Cxz(y,z) = Cxz(y,z) + 1/Uxy(x,y);
-                    Czx(z,y) = Czx(z,y) + 1/Uxz(x,z);
+                    Cxz(y,z) = Cxz(y,z) + 1/Uxy(x,y);   %Cxz = Cyz
+                    Czx(z,y) = Czx(z,y) + 1/Uxz(x,z);   %Czx = Czy
                 end
 
             end
@@ -256,21 +255,15 @@ function [Cxz,Cyz,Czx] = update_coh2(Uxz,Uyz,Dxz,Dyz,Cxz,Cyz,Czx)
             for z = (y+1):n
                 
                 if Dxz(x,y) < Dxz(x,z) && Dxz(x,y) < Dyz(y,z)     % xy is closest pair
-                    Cxz(x,y) = Cxz(x,y) + 1/Uxz(x,z);
-                    Czx(y,x) = Czx(y,x) + 1/Uyz(y,z);
+                    Cxz(x,y) = Cxz(x,y) + 1/Uxz(x,z);   % Cxz = Cxy
+                    Czx(y,x) = Czx(y,x) + 1/Uyz(y,z);   % Czx = Cyx
                 elseif Dxz(x,z) < Dxz(x,y) && Dxz(x,z) < Dyz(y,z) % xz is closest pair
-                    Cxz(x,z) = Cxz(x,z) + 1/Uxz(x,y);
-                    Czx(z,x) = Czx(z,x) + 1/Uyz(y,z);
+                    Cxz(x,z) = Cxz(x,z) + 1/Uxz(x,y);   % Uxz = Uxy
+                    Czx(z,x) = Czx(z,x) + 1/Uyz(y,z);   % 
                 else                                      % yz is closest pair
-                    [x,y,z]
-                    Uxz % Uxz is not symmetric
-                    Cyz
-                    Cyz(y,z) = Cyz(y,z)+ 1/Uxz(x,y);
-                    
-                    Cyz(z,y) = Cyz(z,y)+ 1/Uxz(x,y); % need less 0.16777
-                  
-                    
-                    Cyz
+                    Cyz(y,z) = Cyz(y,z)+ 1/Uxz(x,y); % Uxz = Uxy
+                    Cyz(z,y) = Cyz(z,y)+ 1/Uxz(x,z); % 
+        
                 end
 
             end
@@ -291,7 +284,7 @@ function [Cxy,Cxz,Cyz,Cyx,Czx,Czy] = update_coh3(Uxy,Uxz,Uyz,Dxy,Dxz,Dyz,Cxy,Cxz
                 
                 if Dxy(x,y) < Dxz(x,z) && Dxy(x,y) < Dyz(y,z)     % xy is closest pair
                     Cxy(x,y) = Cxy(x,y) + 1/Uxz(x,z);
-                    Cyx(y,x) = Cyx(y,z) + 1/Uyz(y,z);
+                    Cyx(y,x) = Cyx(y,x) + 1/Uyz(y,z);
                 elseif Dxz(x,z) < Dxy(x,y) && Dxz(x,z) < Dyz(y,z) % xz is closest pair
                     Cxz(x,z) = Cxz(x,z) + 1/Uxy(x,y);
                     Czx(z,x) = Czx(z,x) + 1/Uyz(y,z);
