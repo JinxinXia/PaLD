@@ -1,7 +1,7 @@
 #include "kernels.h"
 
 // linear indexing function assuming column major
-int lin(int i, int j, int n) { return i + j * n; }
+inline int lin(int i, int j, int n) { return i + j * n; }
 
 /*
 params
@@ -11,7 +11,7 @@ beta in  conflict focus parameter: z is in focus of (x,y) if
 n    in  number of points
 C    out cohesion matrix: C(x,z) is z's support for x
 */
-void pald_orig(double *D, double beta, int n, double *C) {
+void pald_orig(float *D, float beta, int n, float *C) {
     // input checking
     if (beta < 0)
         fprintf(stderr, "beta must be positive\n");
@@ -20,7 +20,7 @@ void pald_orig(double *D, double beta, int n, double *C) {
     for (int x = 0; x < n - 1; x++)
         for (int y = x + 1; y < n; y++) {
             int cfs = 0;                // conflict focus size of x,y
-            double dxy = D[lin(x, y, n)]; // distance between x and y
+            float dxy = D[lin(x, y, n)]; // distance between x and y
 
             // loop over all points z to determine conflict focus size
             for (int z = 0; z < n; z++) {
@@ -30,8 +30,8 @@ void pald_orig(double *D, double beta, int n, double *C) {
 
             // loop over all points z to determine contributions to x or y
             for (int z = 0; z < n; z++) {
-                double dzx = D[lin(z, x, n)]; // dist between z and x
-                double dzy = D[lin(z, y, n)]; // dist between z and y
+                float dzx = D[lin(z, x, n)]; // dist between z and x
+                float dzy = D[lin(z, y, n)]; // dist between z and y
 
                 // z contributes to x or y only if in conflict focus
                 if (dzx <= beta * dxy || dzy <= beta * dxy) {
@@ -50,6 +50,46 @@ void pald_orig(double *D, double beta, int n, double *C) {
         }
 }
 
+void pald_orig_par(float *D, float beta, int n, float *C, int t) {
+    // input checking
+    if (beta < 0)
+        fprintf(stderr, "beta must be positive\n");
+
+    // loop over pairs of points x and y (only for x < y)
+    for (int x = 0; x < n - 1; x++)
+        for (int y = x + 1; y < n; y++) {
+            int cfs = 0;                // conflict focus size of x,y
+            float dxy = D[lin(x, y, n)]; // distance between x and y
+
+            // loop over all points z to determine conflict focus size
+	    #pragma omp parallel for num_threads(t) reduction(+:cfs)
+            for (int z = 0; z < n; z++) {
+                if (D[lin(z, x, n)] <= beta * dxy || D[lin(z, y, n)] <= beta * dxy)
+                    cfs++;
+            }
+
+            // loop over all points z to determine contributions to x or y
+	    #pragma omp parallel for num_threads(t)
+            for (int z = 0; z < n; z++) {
+                float dzx = D[lin(z, x, n)]; // dist between z and x
+                float dzy = D[lin(z, y, n)]; // dist between z and y
+
+                // z contributes to x or y only if in conflict focus
+                if (dzx <= beta * dxy || dzy <= beta * dxy) {
+                    if (dzx < dzy)
+                        C[lin(x, z, n)] += 1.0 / cfs; // z closer to x than y
+                    else if (dzy < dzx)
+                        C[lin(y, z, n)] += 1.0 / cfs; // z closer to y than x
+
+                    else {
+                        // z equidistant to x and y
+                        C[lin(x, z, n)] += 0.5 / cfs;
+                        C[lin(y, z, n)] += 0.5 / cfs;
+                    }
+                }
+            }
+        }
+}
 /*
 params
 D    in  distance matrix: D(x,y) is distance between x and y (symmetric,
@@ -60,16 +100,16 @@ n    in  number of points
 C    out cohesion matrix: C(x,z) is z's support for x
 b    in  blocking parameter for cache efficiency
 */
-void pald_opt(double *D, double beta, int n, double *C, const int b) {
+void pald_opt(float *D, float beta, int n, float *C, const int b) {
     // declare indices
     int x, y, z, i, j, xb, yb, ib;
 
     // pre-allocate conflict focus and distance cache blocks
     int *UXY = (int *) malloc(b * b * sizeof(int));
-    double *DXY = (double *) malloc(b * b * sizeof(double));
+    float *DXY = (float *) malloc(b * b * sizeof(float));
 
     // initialize pointers for cache-block subcolumn vectors
-    double *DXz, *DYz, *CXz, *CYz;
+    float *DXz, *DYz, *CXz, *CYz;
 
     // loop over blocks of points Y = (y,...,y+b-1)
     for (y = 0; y < n; y += b) {
@@ -85,7 +125,7 @@ void pald_opt(double *D, double beta, int n, double *C, const int b) {
             for (j = 0; j < yb; j++) {
                 // DXY(:,j) = D(x:x+xb,y+j) in off-diagonal case
                 ib = (x == y ? j : xb); // handle diagonal blocks
-                memcpy(DXY + j * xb, D + x + (y + j) * n, ib * sizeof(double));
+                memcpy(DXY + j * xb, D + x + (y + j) * n, ib * sizeof(float));
             }
 
             // DEBUG: print out DXY cache block
@@ -154,14 +194,14 @@ void pald_opt(double *D, double beta, int n, double *C, const int b) {
                         if (DYz[j] <= beta * DXY[i + j * xb] || DXz[i] <= beta * DXY[i + j * xb]) {
                             // z supports x+i
                             if (DXz[i] < DYz[j])
-                                CXz[i] += 1.0 / UXY[i + j * xb];
+                                CXz[i] += 1.0f / UXY[i + j * xb];
                                 // z supports y+j
                             else if (DYz[j] < DXz[i])
-                                CYz[j] += 1.0 / UXY[i + j * xb];
+                                CYz[j] += 1.0f / UXY[i + j * xb];
                                 // z splits its support
                             else {
-                                CXz[i] += 0.5 / UXY[i + j * xb];
-                                CYz[j] += 0.5 / UXY[i + j * xb];
+                                CXz[i] += 0.5f / UXY[i + j * xb];
+                                CYz[j] += 0.5f / UXY[i + j * xb];
                             }
                         }
                     }
@@ -192,14 +232,14 @@ C    out cohesion matrix: C(x,z) is z's support for x
 b    in  blocking parameter for cache efficiency
 t    in  number of OMP threads to use
 */
-void pald_opt_par(double *D, double beta, int n, double *C, const int b, int t) {
+void pald_opt_par(float *D, float beta, int n, float *C, const int b, int t) {
 
     // decare timers
-    double tic, cum_time_U = 0, cum_time_C = 0;
+    float tic, cum_time_U = 0, cum_time_C = 0;
 
     // pre-allocate conflict focus and distance cache blocks
     int *UXY = (int *) malloc(b * b * sizeof(int));
-    double *DXY = (double *) malloc(b * b * sizeof(double));
+    float *DXY = (float *) malloc(b * b * sizeof(float));
 
     // loop over blocks of points Y = (y,...,y+b-1)
     for (int y = 0; y < n; y += b) {
@@ -215,7 +255,7 @@ void pald_opt_par(double *D, double beta, int n, double *C, const int b, int t) 
             for (int j = 0; j < yb; j++) {
                 // DXY(:,j) = D(x:x+xb,y+j) in off-diagonal case
                 int ib = (x == y ? j : xb); // handle diagonal blocks
-                memcpy(DXY + j * xb, D + x + (y + j) * n, ib * sizeof(double));
+                memcpy(DXY + j * xb, D + x + (y + j) * n, ib * sizeof(float));
             }
 
             // DEBUG: print out DXY cache block
@@ -237,8 +277,8 @@ void pald_opt_par(double *D, double beta, int n, double *C, const int b, int t) 
             #pragma omp parallel for num_threads(t) reduction(+:UXY[:b*b])
             for (int z = 0; z < n; z++) {
                 // set pointers to subcolumns of D
-                double* DXz = D + x + z*n;
-                double* DYz = D + y + z*n; 
+                float* DXz = D + x + z*n;
+                float* DYz = D + y + z*n; 
                 // loop over all (i,j) pairs in block
                 for (int j = 0; j < yb; j++) {
                     int ib = (x == y ? j : xb); // handle diagonal blocks
@@ -271,11 +311,11 @@ void pald_opt_par(double *D, double beta, int n, double *C, const int b, int t) 
             #pragma omp parallel for num_threads(t)
             for (int z = 0; z < n; z++) {
                 // set pointers to subcolumns of D
-                double* DXz = D + x + z*n;
-                double* DYz = D + y + z*n; 
+                float* DXz = D + x + z*n;
+                float* DYz = D + y + z*n; 
                 // set pointers to subcolumns of C
-                double* CXz = C + x + z*n;
-                double* CYz = C + y + z*n; 
+                float* CXz = C + x + z*n;
+                float* CYz = C + y + z*n; 
                 // loop over all (i,j) pairs in block
                 for (int j = 0; j < yb; j++) {
                     int ib = (x == y ? j : xb); // handle diagonal blocks
