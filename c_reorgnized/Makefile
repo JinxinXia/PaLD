@@ -1,5 +1,5 @@
 CC =icc
-CFLAGS = -Wall -O3 -qopenmp -xHost -g -pg 
+CFLAGS = -Wall -O3 -qopenmp -xHost -g -pg -DBLOCKSIZE=256 -DBLOCKSIZEPAR=256
 LDFLAGS = -lm -qopenmp
 
 objects = original.o opt.o utils.o
