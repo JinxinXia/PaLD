@@ -3,23 +3,19 @@
 void pald_opt_new(double *D, double beta, int n, double *C, const int b) {
     // declare indices
     int x, y, z, i, j, xb, yb, ib;
-    n=2048;
+
     // pre-allocate conflict focus and distance cache blocks
     double *UXY = (double *) _mm_malloc(BLOCKSIZE * BLOCKSIZE * sizeof(double),64);
     double *DXY = (double *) _mm_malloc(BLOCKSIZE * BLOCKSIZE * sizeof(double),64);
-    double *in_range = (double *) _mm_malloc(BLOCKSIZE  * sizeof(double),64);
-    double *in_logic = (double *) _mm_malloc(BLOCKSIZE  * sizeof(double),64);
-
+    double *in_range = (double *) _mm_malloc(BLOCKSIZE * sizeof(double),64);
+    double *in_logic = (double *) _mm_malloc(BLOCKSIZE * sizeof(double),64);
     __assume_aligned(UXY,64);
     __assume_aligned(DXY,64);
-    __assume_aligned(in_range,64);
-    __assume_aligned(in_logic,64);
-
+    __assume_aligned(in_logic, 64);
+    __assume_aligned(in_range, 64);
 
     // initialize pointers for cache-block subcolumn vectors
     double *CXz, *CYz, *DXz, *DYz;
-    __assume_aligned(C,64);
-    __assume_aligned(D,64);
     __assume_aligned(DXz,64);
     __assume_aligned(DYz,64);
     __assume_aligned(CXz,64);
@@ -36,6 +32,18 @@ void pald_opt_new(double *D, double beta, int n, double *C, const int b) {
                 ib = (x == y ? j : BLOCKSIZE); // handle diagonal blocks
                 memcpy(DXY + j * BLOCKSIZE, D + x + (y + j) * n, ib * sizeof(double));
             }
+
+            /*
+            if (x == y){
+                for (j = 0; j < BLOCKSIZE; j++)
+                    memcpy(DXY + j * BLOCKSIZE, D + x + (y + j) * n, j * sizeof(double));
+
+            }
+            else{
+                for (j = 0; j < BLOCKSIZE; j++)
+                    memcpy(DXY + j * BLOCKSIZE, D + x + (y + j) * n, BLOCKSIZE * sizeof(double));
+
+            }*/
 
             // compute block's conflict focus sizes by looping over all points z
             memset(UXY, 0, BLOCKSIZE * BLOCKSIZE * sizeof(double)); // clear old values
@@ -68,37 +76,36 @@ void pald_opt_new(double *D, double beta, int n, double *C, const int b) {
             for (z = 0; z < n; z++) {
                 // loop over all (i,j) pairs in block
                 for (j = 0; j < BLOCKSIZE; j++) {
-                    ib = (x == y ? j : BLOCKSIZE); 
-                    for (i = 0; i < ib; i++) 
+                    ib = (x == y ? j : BLOCKSIZE);
+
+                    //determines the points on which operations are needed 
+                    for (i = 0; i < ib; i++) {
+                        // check if z is in conflict of (x+i,y+j)
                         if (DYz[j] <= beta * DXY[i + j * BLOCKSIZE] || DXz[i] <= beta * DXY[i + j * BLOCKSIZE]) 
+                            // z supports x+i
                             in_range[i] = 1.0;
                         else
                             in_range[i] = 0.0;
-                    
-                    // z supports x+i
-                    for (i = 0;i < ib; i++)
-                        in_logic[i]= DXz[i] < DYz[j]? 1.0:0.0;
-                    for (i =0;i<ib;i++)
-                        CXz[i] += 1.0 / UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic[i];
-                    
-                    // z supports y+j
-                    for (i = 0;i < ib; i++)
-                        in_logic[i]= DXz[i] > DYz[j]? 1.0:0.0;
-                    for (i =0;i<ib;i++)
-                        CYz[j] += 1.0 / UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic[i];
-                    
-                    // z is evenly splitted
-                    for (i = 0;i < ib; i++)
-                        in_logic[i]= DXz[i] == DYz[j]? 1.0:0.0;                        
-                    for (i = 0;i < ib; i++){
-                        CXz[i] += 0.5 / UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic[i];
-                        CYz[j] += 0.5 / UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic[i];
-                    }    
-                            /*
-                            else {
-                                CXz[i] += 0.5 / UXY[i + j * BLOCKSIZE]*in_range[i];
-                                CYz[j] += 0.5 / UXY[i + j * BLOCKSIZE]*in_range[i];
-                            }*/
+                    }
+
+                    for (i = 0; i < ib; i++) {
+                        if (DXz[i] < DYz[j])
+                            in_logic[i] = 1.0;
+                        else
+                            in_logic[i] = 0.0;
+                    }
+                    for (i = 0; i < ib; i++)
+                        CXz[i] += 1.0 / UXY[i + j * BLOCKSIZE] * in_logic[i] * in_range[i];
+
+                    for (i = 0; i < ib; i++) {
+                        if (DXz[i] > DYz[j])
+                            in_logic[i] = 1.0;
+                        else
+                            in_logic[i] = 0.0;
+                    }
+                    for (i = 0; i < ib; i++)
+                        CYz[j] += 1.0 / UXY[i + j * BLOCKSIZE] * in_logic[i] * in_range[i];
+                        
                     
                 }
 
@@ -112,8 +119,8 @@ void pald_opt_new(double *D, double beta, int n, double *C, const int b) {
     }
 
     // free up cache blocks
-    _mm_free(in_range);
-    _mm_free(in_logic);
     _mm_free(DXY);
     _mm_free(UXY);
+    _mm_free(in_range);
+    _mm_free(in_logic);
 }

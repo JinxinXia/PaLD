@@ -36,26 +36,18 @@ int main(int argc, char **argv) {
 
     unsigned int num_gen = n * n;
 
-    double *C1 = calloc(num_gen, sizeof(double));
-    double *C2 = calloc(num_gen, sizeof(double));
-    double *D = malloc(sizeof(double) * num_gen);
+    double *C1 = (double *) calloc(num_gen, sizeof(double));
+    double *C2 = (double *) _mm_malloc(num_gen * sizeof(double),64);
+    double *D  = (double *) malloc(num_gen * sizeof(double));
     dist_mat_gen2D(D, n, 1, 10*n, 12345, '2');
+    memset(C2,0,num_gen*sizeof(double));
 
-    //print out dist matrix
-    /*
-    for (i = 0; i < num_gen; i++) {
-
-        if (i % n == 0) {
-            printf("\n");
-        }
-        printf("%.2f ", D[i]);
-    }*/
     FILE *f = fopen("dist_mat.bin", "wb");
     fwrite(D, sizeof(double), num_gen, f);
     fclose(f);
     //computing C with optimal block algorithm
     clock_t start = clock();
-    pald_opt_new(D, 1, n, C1, cache_size);
+    pald_opt_new(D, 1, n, C2, cache_size);
     clock_t diff = clock() - start;
     double msec_opt = 1. * diff / CLOCKS_PER_SEC;
     
@@ -65,7 +57,7 @@ int main(int argc, char **argv) {
 
     //computing C with original algorithm  
     start = clock();
-    pald_orig(D, 1, n, C2);
+    pald_orig(D, 1, n, C1);
     diff = clock() - start;
     double msec_orig = 1. * diff / CLOCKS_PER_SEC;
 
@@ -85,6 +77,6 @@ int main(int argc, char **argv) {
     printf("Orig time: %.3fs\nOpt time: %.3fs\n",msec_orig,msec_opt);
 
     free(D);
-    free(C2);
     free(C1);
+    _mm_free(C2);
 }

@@ -36,14 +36,14 @@ void pald_orig(double *D, double beta, int n, double *C) {
                 // z contributes to x or y only if in conflict focus
                 if (dzx <= beta * dxy || dzy <= beta * dxy) {
                     if (dzx < dzy)
-                        C[lin(x, z, n)] += 1.0f / cfs; // z closer to x than y
+                        C[lin(x, z, n)] += 1.0 / cfs; // z closer to x than y
                     else if (dzy < dzx)
-                        C[lin(y, z, n)] += 1.0f / cfs; // z closer to y than x
-
+                        C[lin(y, z, n)] += 1.0 / cfs; // z closer to y than x
+                    
                     else {
                         // z equidistant to x and y
-                        C[lin(x, z, n)] += 0.5f / cfs;
-                        C[lin(y, z, n)] += 0.5f / cfs;
+                        C[lin(x, z, n)] += 0.5 / cfs;
+                        C[lin(y, z, n)] += 0.5 / cfs;
                     }
                 }
             }
