@@ -64,6 +64,7 @@ int main(int argc, char **argv) {
 
 
     //computing C with original algorithm  
+    
     start = clock();
     pald_orig(D, 1, n, C2);
     diff = clock() - start;
@@ -83,7 +84,7 @@ int main(int argc, char **argv) {
     printf("Maximum difference: %1.1e \n", maxdiff);
 
     printf("%d  Orig time: %.3fs  Opt time: %.3fs\n", n, msec_orig, msec_opt);
-
+    
     free(D);
     free(C2);
     free(C1);

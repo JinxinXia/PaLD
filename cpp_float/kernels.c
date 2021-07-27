@@ -63,7 +63,7 @@ b    in  blocking parameter for cache efficiency
 void pald_opt_new(float *D, float beta, int n, float *C) {
     // declare indices
     int x, y, z, i, j, k, xb, yb, ib;
-
+    float contains_one;
     // pre-allocate conflict focus and distance cache blocks
     float *UXY = (float *) _mm_malloc(BLOCKSIZE * BLOCKSIZE * sizeof(float),64);
     float *DXY = (float *) _mm_malloc(BLOCKSIZE * BLOCKSIZE * sizeof(float),64);
@@ -152,11 +152,17 @@ void pald_opt_new(float *D, float beta, int n, float *C) {
                     
                     // z is evenly divided
                     for (i = 0;i < ib; i++)
-                        in_logic[i]= DXz[i] == DYz[j]? 1.0f:0.0f;                        
-                    for (i = 0;i < ib; i++){
-                        CXz[i] += 0.5f * UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic[i];
-                        CYz[j] += 0.5f * UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic[i];
-                    }    
+                        in_logic[i]= DXz[i] == DYz[j]? 1.0f:0.0f; 
+                    contains_one = 0.0f;
+                    for (i = 0; i<ib ;i++) 
+                        contains_one += in_logic[i];
+
+                    if (contains_one > 0.5f){                      
+                        for (i = 0;i < ib; i++){
+                            CXz[i] += 0.5f * UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic[i];
+                            CYz[j] += 0.5f * UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic[i];
+                        }    
+                    }
                             /*
                             else {
                                 CXz[i] += 0.5 / UXY[i + j * BLOCKSIZE]*in_range[i];
