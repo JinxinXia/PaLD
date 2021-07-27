@@ -10,5 +10,6 @@
 void pald_orig(float *D, float beta, int n, float *C);
 void pald_opt(float *D, float beta, int n, float *C, const int b);
 void pald_opt_par(float *D, float beta, int n, float *C, const int b, int num_threads);
+void pald_opt_new(float *D, float beta, int n, float *C);
 
 #endif //PALD_KERNELS_H
