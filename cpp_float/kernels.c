@@ -67,7 +67,7 @@ void pald_opt_new(float *D, float beta, int n, float *C) {
     // pre-allocate conflict focus and distance cache blocks
     float *UXY = (float *) _mm_malloc(BLOCKSIZE * BLOCKSIZE * sizeof(float),64);
     float *DXY = (float *) _mm_malloc(BLOCKSIZE * BLOCKSIZE * sizeof(float),64);
-    float *in_range = (float *) _mm_malloc(BLOCKSIZE  * sizeof(float),64);
+    float *in_range = (float *) _mm_malloc(BLOCKSIZE * sizeof(float),64);
     //handeling cases of unequal distance
     float *in_logic = (float *) _mm_malloc(BLOCKSIZE  * sizeof(float),64);
     float *in_logic_2 = (float *) _mm_malloc(BLOCKSIZE  * sizeof(float),64);
@@ -88,7 +88,8 @@ void pald_opt_new(float *D, float beta, int n, float *C) {
     __assume_aligned(DYz,64);
     __assume_aligned(CXz,64);
     __assume_aligned(CYz,64);
-
+    
+    float dist_cutoff = 0., dist_cutoff_tmp = 0.;
     //up_left main block
     for (y = 0; y < n; y += BLOCKSIZE) {
 
@@ -98,7 +99,6 @@ void pald_opt_new(float *D, float beta, int n, float *C) {
             for (j = 0; j < BLOCKSIZE; j++) {
                 // DXY(:,j) = D(x:x+xb,y+j) in off-diagonal case
                 ib = (x == y ? j : BLOCKSIZE); // handle diagonal blocks
-		__assume_aligned(D,64);
 		memcpy(DXY + j * BLOCKSIZE, D + x + (y + j) * n, ib * sizeof(float));
             }
 
@@ -110,13 +110,16 @@ void pald_opt_new(float *D, float beta, int n, float *C) {
                 // loop over all (i,j) pairs in block
                 for (j = 0; j < BLOCKSIZE; j++) {
                     ib = (x == y ? j : BLOCKSIZE); 
-                    for (i = 0; i < ib; i++)
-     
-                        // determine if z is in conflict focus of x+i and y+j
+                    for (i = 0; i < ib; i++) {
+     			//dist_cutoff = beta * DXY[i + j * BLOCKSIZE];
+			// determine if z is in conflict focus of x+i and y+j
+			//if (DYz[j] <= dist_cutoff || DXz[i] <= dist_cutoff){
                         if (DYz[j] <= beta * DXY[i + j * BLOCKSIZE] || DXz[i] <= beta * DXY[i + j * BLOCKSIZE]){
                             UXY[i + j * BLOCKSIZE]++;
 			    //in_range[i] = 1.0f;
 			}
+			
+		   }
 		    	
                 }
 
@@ -139,13 +142,8 @@ void pald_opt_new(float *D, float beta, int n, float *C) {
                 // loop over all (i,j) pairs in block
                 for (j = 0; j < BLOCKSIZE; j++) {
                     ib = (x == y ? j : BLOCKSIZE); 
-		    for (i = 0; i < ib; i++) 
-                        if (DYz[j] <= beta * DXY[i + j * BLOCKSIZE] || DXz[i] <= beta * DXY[i + j * BLOCKSIZE]) 
-                            in_range[i] = 1.0f;
-                        else
-                            in_range[i] = 0.0f;
 		    
-		    // z supports y+j
+		   // z supports y+j
 		    for (i = 0; i < ib; ++i) {
                         in_logic[i]= DXz[i] < DYz[j]? 1.0f:0.0f;
 		    }
@@ -154,6 +152,15 @@ void pald_opt_new(float *D, float beta, int n, float *C) {
 		    for (i = 0; i < ib; ++i) {
                         in_logic_2[i]= DXz[i] == DYz[j]? 1.0f:0.0f;
 			contains_one += in_logic_2[i];
+		    }
+
+		    for (i = 0; i < ib; i++) {
+			//dist_cutoff = beta * DXY[i + j * BLOCKSIZE]; 
+                        //if (DYz[j] <= dist_cutoff || DXz[i] <= dist_cutoff)
+                        if (DYz[j] <= beta * DXY[i + j * BLOCKSIZE] || DXz[i] <= beta * DXY[i + j * BLOCKSIZE]) 
+		      	    in_range[i] = 1.0f;
+                        else
+                            in_range[i] = 0.0f;
 		    }
 
 		    for (i =0;i<ib ;++i){
@@ -178,10 +185,11 @@ void pald_opt_new(float *D, float beta, int n, float *C) {
 		    }
 		   */
 		    
-		    //CYz_reduction = 0;
+		    CYz_reduction = 0;
 		    for (i =0;i<ib;++i){
-                        CYz[j] +=  UXY[i + j * BLOCKSIZE]*in_range[i]*(1 - in_logic[i]);
+                        CYz_reduction +=  UXY[i + j * BLOCKSIZE]*in_range[i]*(1 - in_logic[i]);
 		    }
+		    CYz[j] += CYz_reduction;
 		    /*
 		    for (i = ib-ib%8; i < ib; ++i) {
                         CYz[j] +=  UXY[i + j * BLOCKSIZE]*in_range[i]*(1 - in_logic[i]);
@@ -200,12 +208,12 @@ void pald_opt_new(float *D, float beta, int n, float *C) {
                         contains_one += in_logic_2[i];
 		    */
                     if (contains_one > 0.5f){                      
-                        //CYz_reduction = 0;
+                        CYz_reduction = CYz[j];
 			for (i = 0;i < ib; i++){
                             CXz[i] += 0.5f * UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic_2[i];
-                            CYz[j] -= 0.5f * UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic_2[i];
+                            CYz_reduction -= 0.5f * UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic_2[i];
                         }
-			//CYz[j] += CYz_reduction;
+			CYz[j] = CYz_reduction;
                     }
                             /*
                             else {
@@ -227,6 +235,7 @@ void pald_opt_new(float *D, float beta, int n, float *C) {
     // free up cache blocks
     _mm_free(in_range);
     _mm_free(in_logic);
+    _mm_free(in_logic_2);
     _mm_free(DXY);
     _mm_free(UXY);
 }
