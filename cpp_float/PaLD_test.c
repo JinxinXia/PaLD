@@ -36,11 +36,11 @@ int main(int argc, char **argv) {
 
     unsigned int num_gen = n * n;
 
-    float *C1 = calloc(num_gen, sizeof(float));
-    float *C2 = calloc(num_gen, sizeof(float));
+    float *C1 = _mm_malloc(num_gen*sizeof(float), 64);
+    float *C2 = _mm_malloc(num_gen*sizeof(float), 64);
     memset(C1, 0, sizeof(float)*num_gen);
     memset(C2, 0, sizeof(float)*num_gen);
-    float *D = malloc(sizeof(float) * num_gen);
+    float *D = _mm_malloc(sizeof(float) * num_gen, 64);
     dist_mat_gen2D(D, n, 1, 10*n, 12345, '2');
 
     //print out dist matrix
@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
 
     printf("%d  Orig time: %.3fs  Opt time: %.3fs\n", n, msec_orig, msec_opt);
    
-    free(D);
-    free(C2);
-    free(C1);
+    _mm_free(D);
+    _mm_free(C2);
+    _mm_free(C1);
 }

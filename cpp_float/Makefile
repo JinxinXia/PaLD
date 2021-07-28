@@ -1,5 +1,5 @@
 CC = icc
-CFLAGS = -Ofast -ipo -Wall -qopenmp -xCORE-AVX512 -qopt-zmm-usage=high -DEBUG -DBLOCKSIZE=256
+CFLAGS = -Ofast -ipo -Wall -qopt-report:5 -qopenmp -xCORE-AVX512 -qopt-zmm-usage=high -DEBUG -DBLOCKSIZE=256
 LDFLAGS = -qopenmp -ipo -DEBUG
 
 objects = kernels.o utils.o

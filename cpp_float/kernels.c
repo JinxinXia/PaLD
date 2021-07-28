@@ -60,7 +60,7 @@ n    in  number of points
 C    out cohesion matrix: C(x,z) is z's support for x
 b    in  blocking parameter for cache efficiency
 */
-void pald_opt_new(float *D, float beta, int n, float *C) {
+void pald_opt_new(float* restrict D, float beta, int n, float* restrict C) {
     // declare indices
     int x, y, z, i, j, k, xb, yb, ib;
     float contains_one;
@@ -99,11 +99,12 @@ void pald_opt_new(float *D, float beta, int n, float *C) {
             for (j = 0; j < BLOCKSIZE; j++) {
                 // DXY(:,j) = D(x:x+xb,y+j) in off-diagonal case
                 ib = (x == y ? j : BLOCKSIZE); // handle diagonal blocks
-		memcpy(DXY + j * BLOCKSIZE, D + x + (y + j) * n, ib * sizeof(float));
+    		__assume_aligned(D,64);
+		_intel_fast_memcpy(DXY + j * BLOCKSIZE, D + x + (y + j) * n, ib * sizeof(float));
             }
 
             // compute block's conflict focus sizes by looping over all points z
-            memset(UXY, 0, BLOCKSIZE * BLOCKSIZE * sizeof(float)); // clear old values
+            _intel_fast_memset(UXY, 0, BLOCKSIZE * BLOCKSIZE * sizeof(float)); // clear old values
             DXz = D + x;
             DYz = D + y; // init pointers to subcolumns of D
             for (z = 0; z < n; z ++) {
@@ -162,7 +163,6 @@ void pald_opt_new(float *D, float beta, int n, float *C) {
                         else
                             in_range[i] = 0.0f;
 		    }
-
 		    for (i =0;i<ib ;++i){
                         CXz[i] +=  UXY[i + j * BLOCKSIZE]*in_range[i]*(in_logic[i]);
                         //CYz[j] +=  UXY[i + j * BLOCKSIZE]*in_range[i]*(1 - in_logic[i]);
