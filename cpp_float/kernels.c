@@ -146,7 +146,7 @@ void pald_opt_new(float *D, float beta, int n, float *C) {
                             in_range[i] = 0.0f;
 		    
 		    // z supports y+j
-                    for (i = 0;i < ib; i++){
+		    for (i = 0; i < ib; ++i) {
                         in_logic[i]= DXz[i] < DYz[j]? 1.0f:0.0f;
 		    }
 

@@ -1,6 +1,6 @@
 CC = icc
-CFLAGS = -Ofast -Wall -qopenmp -xCORE-AVX512 -qopt-zmm-usage=high -g -DEBUG -DBLOCKSIZE=256
-LDFLAGS = -qopenmp -g -DEBUG
+CFLAGS = -Ofast -ipo -Wall -qopenmp -xCORE-AVX512 -qopt-zmm-usage=high -DEBUG -DBLOCKSIZE=256
+LDFLAGS = -qopenmp -ipo -DEBUG
 
 objects = kernels.o utils.o
 targets = PaLD_test PaLD_par_test PaLD_vtune
