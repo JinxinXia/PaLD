@@ -1,7 +1,6 @@
 PaLD_test
 PaLD_par_test
 PaLD_vtune
-dist_mat.bin
 *.o
 *.optrpt
 *.dump
