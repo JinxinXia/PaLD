@@ -99,12 +99,11 @@ void pald_opt_new(float* restrict D, float beta, int n, float* restrict C) {
             for (j = 0; j < BLOCKSIZE; j++) {
                 // DXY(:,j) = D(x:x+xb,y+j) in off-diagonal case
                 ib = (x == y ? j : BLOCKSIZE); // handle diagonal blocks
-    		__assume_aligned(D,64);
-		_intel_fast_memcpy(DXY + j * BLOCKSIZE, D + x + (y + j) * n, ib * sizeof(float));
+		memcpy(DXY + j * BLOCKSIZE, D + x + (y + j) * n, ib * sizeof(float));
             }
 
             // compute block's conflict focus sizes by looping over all points z
-            _intel_fast_memset(UXY, 0, BLOCKSIZE * BLOCKSIZE * sizeof(float)); // clear old values
+            memset(UXY, 0, BLOCKSIZE * BLOCKSIZE * sizeof(float)); // clear old values
             DXz = D + x;
             DYz = D + y; // init pointers to subcolumns of D
             for (z = 0; z < n; z ++) {
