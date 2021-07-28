@@ -37,9 +37,7 @@ int main(int argc, char **argv) {
     unsigned int num_gen = n * n;
 
     float *C1 = calloc(num_gen, sizeof(float));
-    float *C2 = calloc(num_gen, sizeof(float));
-    memset(C1, 0, sizeof(float)*num_gen);
-    memset(C2, 0, sizeof(float)*num_gen);
+    //float *C2 = calloc(num_gen, sizeof(float));
     float *D = malloc(sizeof(float) * num_gen);
     dist_mat_gen2D(D, n, 1, 10*n, 12345, '2');
 
@@ -67,30 +65,30 @@ int main(int argc, char **argv) {
 
 
     //computing C with original algorithm  
-    
+    /*   
     start = clock();
     //for (int i = 0; i < 4; ++i)
     pald_orig(D, 1, n, C2);
     diff = clock() - start;
     double msec_orig = 1. * diff / CLOCKS_PER_SEC;
-
+    */
 
     //print out result of original algorithm
     //print_out(n, C);
     // print out for error checking
 
     // compute max norm error between two cohesion matrices
-    
+    /*
     float d, maxdiff = 0.;
     for (i = 0; i < num_gen; i++) {
         d = fabs(C1[i]-C2[i]);
         maxdiff = d > maxdiff ? d : maxdiff;
     }
     printf("Maximum difference: %1.1e \n", maxdiff);
-
-    printf("%d  Orig time: %.3fs  Opt time: %.3fs\n", n, msec_orig, msec_opt);
+    */
+    printf("%d Opt time: %.3fs\n", n, msec_opt);
    
     free(D);
-    free(C2);
+    //free(C2);
     free(C1);
 }

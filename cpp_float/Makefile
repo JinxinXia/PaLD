@@ -1,15 +1,18 @@
 CC = icc
 CFLAGS = -Ofast -Wall -qopenmp -xCORE-AVX512 -qopt-zmm-usage=high -g -DEBUG -DBLOCKSIZE=256
-LDFLAGS = -lm -qopenmp -g -DEBUG
+LDFLAGS = -qopenmp -g -DEBUG
 
 objects = kernels.o utils.o
-targets = PaLD_test PaLD_par_test
+targets = PaLD_test PaLD_par_test PaLD_vtune
 
 .PHONY : default
 default: $(targets)
 
 .PHONY : all
 all: clean $(targets)
+
+PaLD_vtune : PaLD_vtune.o $(objects)
+	$(CC) $^ -o $@ $(LDFLAGS)
 
 PaLD_test : PaLD_test.o $(objects)
 	$(CC) $^ -o $@ $(LDFLAGS) 

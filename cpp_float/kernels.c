@@ -70,11 +70,16 @@ void pald_opt_new(float *D, float beta, int n, float *C) {
     float *in_range = (float *) _mm_malloc(BLOCKSIZE  * sizeof(float),64);
     //handeling cases of unequal distance
     float *in_logic = (float *) _mm_malloc(BLOCKSIZE  * sizeof(float),64);
+    float *in_logic_2 = (float *) _mm_malloc(BLOCKSIZE  * sizeof(float),64);
+    float CYz_reduction = 0.f;
 
+    __assume_aligned(C,64);
+    __assume_aligned(D,64);
     __assume_aligned(UXY,64);
     __assume_aligned(DXY,64);
     __assume_aligned(in_range,64);
     __assume_aligned(in_logic,64);
+    __assume_aligned(in_logic_2,64);
 
 
     // initialize pointers for cache-block subcolumn vectors
@@ -93,14 +98,14 @@ void pald_opt_new(float *D, float beta, int n, float *C) {
             for (j = 0; j < BLOCKSIZE; j++) {
                 // DXY(:,j) = D(x:x+xb,y+j) in off-diagonal case
                 ib = (x == y ? j : BLOCKSIZE); // handle diagonal blocks
-                memcpy(DXY + j * BLOCKSIZE, D + x + (y + j) * n, ib * sizeof(float));
+		__assume_aligned(D,64);
+		memcpy(DXY + j * BLOCKSIZE, D + x + (y + j) * n, ib * sizeof(float));
             }
 
             // compute block's conflict focus sizes by looping over all points z
             memset(UXY, 0, BLOCKSIZE * BLOCKSIZE * sizeof(float)); // clear old values
             DXz = D + x;
             DYz = D + y; // init pointers to subcolumns of D
-
             for (z = 0; z < n; z ++) {
                 // loop over all (i,j) pairs in block
                 for (j = 0; j < BLOCKSIZE; j++) {
@@ -108,10 +113,12 @@ void pald_opt_new(float *D, float beta, int n, float *C) {
                     for (i = 0; i < ib; i++)
      
                         // determine if z is in conflict focus of x+i and y+j
-                        if (DYz[j] <= beta * DXY[i + j * BLOCKSIZE] || DXz[i] <= beta * DXY[i + j * BLOCKSIZE])
+                        if (DYz[j] <= beta * DXY[i + j * BLOCKSIZE] || DXz[i] <= beta * DXY[i + j * BLOCKSIZE]){
                             UXY[i + j * BLOCKSIZE]++;
+			    //in_range[i] = 1.0f;
+			}
+		    	
                 }
-
 
                 // update pointers to subcolumns of D
                 DXz += n;
@@ -132,36 +139,73 @@ void pald_opt_new(float *D, float beta, int n, float *C) {
                 // loop over all (i,j) pairs in block
                 for (j = 0; j < BLOCKSIZE; j++) {
                     ib = (x == y ? j : BLOCKSIZE); 
-                    for (i = 0; i < ib; i++) 
+		    for (i = 0; i < ib; i++) 
                         if (DYz[j] <= beta * DXY[i + j * BLOCKSIZE] || DXz[i] <= beta * DXY[i + j * BLOCKSIZE]) 
                             in_range[i] = 1.0f;
                         else
                             in_range[i] = 0.0f;
-                    
-                    // z supports x+i
-                    for (i = 0;i < ib; i++)
+		    
+		    // z supports y+j
+                    for (i = 0;i < ib; i++){
                         in_logic[i]= DXz[i] < DYz[j]? 1.0f:0.0f;
-                    for (i =0;i<ib;i++)
-                        CXz[i] +=  UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic[i];
+		    }
+
+                    contains_one = 0.0f;
+		    for (i = 0; i < ib; ++i) {
+                        in_logic_2[i]= DXz[i] == DYz[j]? 1.0f:0.0f;
+			contains_one += in_logic_2[i];
+		    }
+
+		    for (i =0;i<ib ;++i){
+                        CXz[i] +=  UXY[i + j * BLOCKSIZE]*in_range[i]*(in_logic[i]);
+                        //CYz[j] +=  UXY[i + j * BLOCKSIZE]*in_range[i]*(1 - in_logic[i]);
+		    }
+		    /*
+		    for (i =ib-ib%8; i<ib;++i){
+                        CXz[i] +=  UXY[i + j * BLOCKSIZE]*in_range[i]*(in_logic[i]);
+		    }
+		    */
+		   /*
+		    for (i = 2*(ib/2) + 1; i < ib; ++i) {
+                        CXz[i] +=  UXY[i + j * BLOCKSIZE]*in_range[i]*(in_logic[i]);
+		    }
+		    */
+
+		    // z supports x+i
+                    /*
+		    for (i = 0;i < ib; i++){
+                        in_logic[i]= DXz[i] < DYz[j]? 1.0f:0.0f;
+		    }
+		   */
+		    
+		    //CYz_reduction = 0;
+		    for (i =0;i<ib;++i){
+                        CYz[j] +=  UXY[i + j * BLOCKSIZE]*in_range[i]*(1 - in_logic[i]);
+		    }
+		    /*
+		    for (i = ib-ib%8; i < ib; ++i) {
+                        CYz[j] +=  UXY[i + j * BLOCKSIZE]*in_range[i]*(1 - in_logic[i]);
+		    }
+		    */
+                    //CYz[j] += CYz_reduction;
                     
-                    // z supports y+j
-                    for (i = 0;i < ib; i++)
-                        in_logic[i]= DXz[i] > DYz[j]? 1.0f:0.0f;
-                    for (i =0;i<ib;i++)
-                        CYz[j] +=  UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic[i];
+
                     
-                    // z is evenly divided
-                    for (i = 0;i < ib; i++)
-                        in_logic[i]= DXz[i] == DYz[j]? 1.0f:0.0f; 
+		    // z is evenly divided
+                    //for (i = 0;i < ib; i++)
+                    //    in_logic[i]= DXz[i] == DYz[j]? 1.0f:0.0f;
+		    /*
                     contains_one = 0.0f;
                     for (i = 0; i<ib ;i++) 
-                        contains_one += in_logic[i];
-
+                        contains_one += in_logic_2[i];
+		    */
                     if (contains_one > 0.5f){                      
-                        for (i = 0;i < ib; i++){
-                            CXz[i] += 0.5f * UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic[i];
-                            CYz[j] += 0.5f * UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic[i];
-                        }    
+                        //CYz_reduction = 0;
+			for (i = 0;i < ib; i++){
+                            CXz[i] += 0.5f * UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic_2[i];
+                            CYz[j] -= 0.5f * UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic_2[i];
+                        }
+			//CYz[j] += CYz_reduction;
                     }
                             /*
                             else {

@@ -1,3 +1,6 @@
 PaLD_test
 PaLD_par_test
 *.o
+*.optrpt
+*.dump
+*.bin
