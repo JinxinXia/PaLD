@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     fclose(f);
     //computing C with optimal block algorithm
     clock_t start = clock();
-    pald_opt_new(D, 1, n, C2, cache_size);
+    pald_opt_new(D, 1, n, C2);
     clock_t diff = clock() - start;
     double msec_opt = 1. * diff / CLOCKS_PER_SEC;
     

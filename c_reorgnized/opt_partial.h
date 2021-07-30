@@ -5,5 +5,5 @@
 #include <string.h>
 #include <stdio.h>
 
-void pald_opt_new(double *D, double beta, int n, double *C, const int b);
+void pald_opt_new(double *D, double beta, int n, double *C);
 #endif
