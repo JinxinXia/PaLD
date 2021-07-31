@@ -39,19 +39,6 @@ void pald_opt(double *D, double beta, int n, double *C, const int b) {
                 memcpy(DXY + j * xb, D + x + (y + j) * n, ib * sizeof(double));
             }
 
-            // DEBUG: print out DXY cache block
-            /*printf("x %d y %d xb %d yb %d\n",x,y,xb,yb);
-            printf("\nDXY\n");
-            for (int i = 0; i < xb; i++)
-            {
-                for (int j = 0; j < yb; j++)
-                {
-                    printf("%f ", DXY[i+j*xb]);
-                }
-                printf("\n");
-            }
-            printf("\n");*/
-
             // compute block's conflict focus sizes by looping over all points z
             memset(UXY, 0, b * b * sizeof(int)); // clear old values
             DXz = D + x;
@@ -74,17 +61,6 @@ void pald_opt(double *D, double beta, int n, double *C, const int b) {
                 DXz += n;
                 DYz += n;
             }
-
-            // DEBUG: print out UXY cache block
-            /*for (int i = 0; i < xb; i++)
-            {
-                for (int j = 0; j < yb; j++)
-                {
-                    printf("%d ", UXY[i+j*xb]);
-                }
-                printf("\n");
-            }
-            printf("\n");*/
 
             // update cohesion values according to conflicts between X and Y
             // by looping over all points z
