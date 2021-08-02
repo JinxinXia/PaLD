@@ -1,1 +1,5 @@
 .DS_Store
+*.dump
+*.optrpt
+*.bin
+*.o

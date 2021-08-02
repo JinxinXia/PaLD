@@ -35,14 +35,11 @@ int main(int argc, char **argv) {
     cache_size = argc == 2 ? 2 : atoi(argv[2]);
 
     unsigned int num_gen = n * n;
-    
-    // float *C1 = calloc(num_gen, sizeof(float));
-    // float *C2 = calloc(num_gen, sizeof(float));
+
     float *C1 = _mm_malloc(num_gen*sizeof(float), 64);
     float *C2 = _mm_malloc(num_gen*sizeof(float), 64);
     memset(C1, 0, num_gen*sizeof(float));
     memset(C2, 0, num_gen*sizeof(float));
-
     float *D = _mm_malloc(sizeof(float) * num_gen, 64);
     dist_mat_gen2D(D, n, 1, 10*n, 12345, '2');
 
@@ -70,11 +67,11 @@ int main(int argc, char **argv) {
 
     //computing C with original algorithm  
     
+    /*
     start = clock();
     pald_orig(D, 1, n, C2);
     diff = clock() - start;
     double msec_orig = 1. * diff / CLOCKS_PER_SEC;
-
 
     //print out result of original algorithm
     //print_out(n, C);
@@ -89,6 +86,7 @@ int main(int argc, char **argv) {
     printf("Maximum difference: %1.1e \n", maxdiff);
 
     printf("%d  Orig time: %.3fs  Opt time: %.3fs\n", n, msec_orig, msec_opt);
+    */
     
     _mm_free(D);
     _mm_free(C2);
