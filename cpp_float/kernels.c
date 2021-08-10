@@ -95,7 +95,7 @@ void pald_opt_new(float* restrict D, float beta, int n, float* restrict C) {
     __assume_aligned(CYz,64);
     
     float dist_cutoff = 0., dist_cutoff_tmp = 0.;
-    
+    double temp =0., sum =0.;
     //up_left main block
     for (y = 0; y < divisible; y += BLOCKSIZE) {
 
@@ -114,6 +114,7 @@ void pald_opt_new(float* restrict D, float beta, int n, float* restrict C) {
             DYz = D + y; 
 
             //calculating conflict focus size
+           
             for (z = 0; z < n; z ++) {
                 // loop over all (i,j) pairs in block
                 for (j = 0; j < BLOCKSIZE; j++) {
@@ -135,21 +136,23 @@ void pald_opt_new(float* restrict D, float beta, int n, float* restrict C) {
             // pre-compute support from comflict focus size
             for (k=0;k<BLOCKSIZE*BLOCKSIZE;k++)
                 UXY[k] = 1.0f/UXY[k];
-
+            
             DXz = D + x;
             DYz = D + y; // init pointers to subcolumns of D
             CXz = C + x;
             CYz = C + y; // init pointers to subcolumns of C
 
             // update cohesion values according to conflicts between X and Y
+            
             for (z = 0; z < n; z++) {
                 // loop over all (i,j) pairs in block
                 for (j = 0; j < BLOCKSIZE; j++) {
                     ib = (x == y ? j : BLOCKSIZE); 
 		            // masking z that supports y + j
+                    temp = omp_get_wtime();
 		            for (i = 0; i < ib; ++i) 
                         in_logic[i]= DXz[i] < DYz[j]? 1.0f:0.0f;
-		            
+		            sum += omp_get_wtime()-temp;
                     // masking z that supports both
                     contains_one = 0.0f;
                     for (i = 0; i < ib; ++i) {
@@ -198,6 +201,7 @@ void pald_opt_new(float* restrict D, float beta, int n, float* restrict C) {
         }
     }
     //computing cases for non-even division of BLOCKSIZE
+    printf("The time for parallel region is: %f\n", sum);
     if (remainder == 0){
         _mm_free(in_range);
         _mm_free(in_logic);
@@ -402,6 +406,162 @@ void pald_opt_new(float* restrict D, float beta, int n, float* restrict C) {
     //printf("x = %d, y = %d \n", x,  y);
     
     // free up cache blocks
+    _mm_free(in_range);
+    _mm_free(in_logic);
+    _mm_free(in_logic_2);
+    _mm_free(DXY);
+    _mm_free(UXY);
+}
+
+void pald_opt_new_par(float *D, float beta, int n, float *C, int t){
+    // declare indices
+    
+       // declare indices
+    int x, y, z, j, k, xb, yb, ib, divisible, remainder;
+
+    remainder = n % BLOCKSIZE;
+    divisible = n - remainder;
+
+    float contains_one;
+    // pre-allocate conflict focus and distance cache blocks
+    float *UXY = (float *) _mm_malloc(BLOCKSIZE * BLOCKSIZE * sizeof(float),64);
+    float *DXY = (float *) _mm_malloc(BLOCKSIZE * BLOCKSIZE * sizeof(float),64);
+    float *in_range = (float *) _mm_malloc(BLOCKSIZE * sizeof(float),64);
+    //handeling cases of unequal distance
+    float *in_logic = (float *) _mm_malloc(BLOCKSIZE  * sizeof(float),64);
+    float *in_logic_2 = (float *) _mm_malloc(BLOCKSIZE  * sizeof(float),64);
+    float CYz_reduction = 0.f;
+
+    __assume_aligned(C,64);
+    __assume_aligned(D,64);
+    __assume_aligned(UXY,64);
+    __assume_aligned(DXY,64);
+    __assume_aligned(in_range,64);
+    __assume_aligned(in_logic,64);
+    __assume_aligned(in_logic_2,64);
+
+
+    // initialize pointers for cache-block subcolumn vectors
+    float *CXz, *CYz, *DXz, *DYz;
+    __assume_aligned(DXz,64);
+    __assume_aligned(DYz,64);
+    __assume_aligned(CXz,64);
+    __assume_aligned(CYz,64);
+    
+    float dist_cutoff = 0., dist_cutoff_tmp = 0.;
+    double temp =0., sum =0.;
+    //up_left main block
+        for (y = 0; y < divisible; y += PBLOCKSIZE) {
+
+        // loop over blocks of points X = (x,...,x+b-1)
+        
+        for (x = 0; x <= y; x += PBLOCKSIZE) {
+
+            for (int j = 0; j < PBLOCKSIZE; j++) {
+                int ib = (x == y ? j : PBLOCKSIZE); // handle diagonal blocks
+		        memcpy(DXY + j * PBLOCKSIZE, D + x + (y + j) * n, ib * sizeof(float));
+            }
+
+            // compute block's conflict focus sizes by looping over all points z
+            memset(UXY, 0, PBLOCKSIZE * PBLOCKSIZE * sizeof(float)); // clear old values
+            // init pointers to subcolumns of D
+         
+            //calculating conflict focus size
+            
+
+            #pragma omp parallel for num_threads(t) reduction(+:UXY[:PBLOCKSIZE*PBLOCKSIZE]) schedule(static,n/t)
+            for (int z = 0; z < n; z ++) {
+                float* DXz1 = D + x + z*n;
+                float* DYz1 = D + y + z*n;
+                __assume_aligned(DXz1,64);
+                __assume_aligned(DYz1,64);
+
+                // loop over all (i,j) pairs in block
+                for (int j = 0; j < PBLOCKSIZE; j++) {
+                    int ib = (x == y ? j : PBLOCKSIZE); 
+                    for (int i = 0; i < ib; i++) {
+			            // determine if z is in conflict focus of x+i and y+j
+                        if (DYz1[j] <= beta * DXY[i + j * PBLOCKSIZE] ||
+                            DXz1[i] <= beta * DXY[i + j * PBLOCKSIZE]){
+                            UXY[i + j * PBLOCKSIZE]++;
+			    
+			            }
+		            }
+                }
+            }
+
+            // pre-compute support from comflict focus size
+            #pragma omp parallel for num_threads(t) schedule(static,n/t)
+            for (int k = 0;k<PBLOCKSIZE*PBLOCKSIZE;k++)
+                UXY[k] = 1.0f/UXY[k];
+
+            DXz = D + x;
+            DYz = D + y; // init pointers to subcolumns of D
+            CXz = C + x;
+            CYz = C + y; // init pointers to subcolumns of C
+
+            // update cohesion values according to conflicts between X and Y
+            for (z = 0; z < n; z++) {
+                // loop over all (i,j) pairs in block
+                for (j = 0; j < BLOCKSIZE; j++) {
+                    ib = (x == y ? j : BLOCKSIZE); 
+		            // masking z that supports y + j
+                    temp = omp_get_wtime();
+                    //#pragma omp parallel for num_threads(t) schedule(static,n/t)
+		            for (int i = 0; i < ib; i++) 
+                        in_logic[i]= DXz[i] < DYz[j]? 1.0f:0.0f;
+		            
+                    sum += omp_get_wtime() - temp;
+                    // masking z that supports both
+                    contains_one = 0.0f;
+                    for (int i = 0; i < ib; i++) {
+                        in_logic_2[i]= DXz[i] == DYz[j]? 1.0f:0.0f;
+                        contains_one += in_logic_2[i];
+                    }
+
+                    // masking z in conflict focus
+		            for (int i = 0; i < ib; i++) {
+                        if (DYz[j] <= beta * DXY[i + j * BLOCKSIZE] || 
+                            DXz[i] <= beta * DXY[i + j * BLOCKSIZE]) 
+                            in_range[i] = 1.0f;
+                        else
+                            in_range[i] = 0.0f;
+		            }
+
+                    // calculating support to x + j
+		            for (int i = 0;i < ib; i++)
+                        CXz[i] +=  UXY[i + j * BLOCKSIZE] * in_range[i] * in_logic[i];
+		            
+		            // calculating support to x + i
+		            CYz_reduction = 0;
+		            for (int i =0; i < ib; i++)
+                        CYz_reduction +=  UXY[i + j * BLOCKSIZE] 
+                        * in_range[i] * (1 - in_logic[i]);
+		            
+		            CYz[j] += CYz_reduction;
+                    
+		            // compensating float count in ties
+                    if (contains_one > 0.5f){                      
+                        CYz_reduction = CYz[j];
+			            for (int i = 0;i < ib; i++){
+                            CXz[i] += 0.5f * UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic_2[i];
+                            CYz_reduction -= 0.5f * UXY[i + j * BLOCKSIZE]*in_range[i]*in_logic_2[i];
+                        }
+			            CYz[j] = CYz_reduction;
+                    }
+                    
+                }
+                // update pointers to subcolumns of D and C
+                DXz += n;
+                DYz += n;
+                CXz += n;
+                CYz += n;
+            }
+        }
+    }
+    //computing cases for non-even division of BLOCKSIZE
+    // free up cache blocks
+    printf("The time for parallel region (Par) is: %f\n", sum);
     _mm_free(in_range);
     _mm_free(in_logic);
     _mm_free(in_logic_2);

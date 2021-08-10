@@ -39,37 +39,20 @@ int main(int argc, char **argv) {
     // float *C1 = calloc(num_gen, sizeof(float));
     // float *C2 = calloc(num_gen, sizeof(float));
     float *C1 = _mm_malloc(num_gen*sizeof(float), 64);
-    float *C2 = _mm_malloc(num_gen*sizeof(float), 64);
     memset(C1, 0, num_gen*sizeof(float));
-    memset(C2, 0, num_gen*sizeof(float));
 
     float *D = _mm_malloc(sizeof(float) * num_gen, 64);
     dist_mat_gen2D(D, n, 1, 10*n, 12345, '2');
 
-    //print out dist matrix
-    /*
-    for (i = 0; i < num_gen; i++) {
-
-        if (i % n == 0) {
-            printf("\n");
-        }
-        printf("%.2f ", D[i]);
-    }*/
-    FILE *f = fopen("dist_mat.bin", "wb");
-    fwrite(D, sizeof(float), num_gen, f);
-    fclose(f);
-    //computing C with optimal block algorithm
-    clock_t start = clock();
+    
     pald_opt_new(D, 1, n, C1);
-    clock_t diff = clock() - start;
-    double  msec_opt = 1. * diff / CLOCKS_PER_SEC;
     
     //print out block algorithm result
     //print_out(n, C);
 
 
     //computing C with original algorithm  
-    
+    /*
     start = clock();
     pald_orig(D, 1, n, C2);
     diff = clock() - start;
@@ -89,8 +72,7 @@ int main(int argc, char **argv) {
     printf("Maximum difference: %1.1e \n", maxdiff);
 
     printf("%d  Orig time: %.3fs  Opt time: %.3fs\n", n, msec_orig, msec_opt);
-    
+    */
     _mm_free(D);
-    _mm_free(C2);
     _mm_free(C1);
 }

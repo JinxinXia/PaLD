@@ -32,14 +32,13 @@ int main(int argc, char **argv) {
         exit(-1);
     }
 
-    cache_size = argc == 2 ? 2 : atoi(argv[2]);
+    cache_size = atoi(argv[2]);
 
     unsigned int num_gen = n * n;
 
     float *C1 = _mm_malloc(num_gen*sizeof(float), 64);
     float *C2 = _mm_malloc(num_gen*sizeof(float), 64);
     memset(C1, 0, num_gen*sizeof(float));
-    memset(C2, 0, num_gen*sizeof(float));
     float *D = _mm_malloc(sizeof(float) * num_gen, 64);
     dist_mat_gen2D(D, n, 1, 10*n, 12345, '2');
 
@@ -52,14 +51,12 @@ int main(int argc, char **argv) {
         }
         printf("%.2f ", D[i]);
     }*/
-    FILE *f = fopen("dist_mat.bin", "wb");
-    fwrite(D, sizeof(float), num_gen, f);
-    fclose(f);
+
     //computing C with optimal block algorithm
-    clock_t start = clock();
-    pald_opt_new(D, 1, n, C1);
-    clock_t diff = clock() - start;
-    double  msec_opt = 1. * diff / CLOCKS_PER_SEC;
+    //clock_t start = clock();
+    pald_opt_new_par(D, 1, n, C1,cache_size);
+    //clock_t diff = clock() - start;
+    //double  msec_opt = 1. * diff / CLOCKS_PER_SEC;
     
     //print out block algorithm result
     //print_out(n, C);
@@ -89,6 +86,5 @@ int main(int argc, char **argv) {
     */
     
     _mm_free(D);
-    _mm_free(C2);
     _mm_free(C1);
 }
